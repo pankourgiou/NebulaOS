@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NebulaOS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    --bg1:#0f1224; --bg2:#1b1f3b; --accent:#7c5cff; --accent2:#00d9c0;
+    --glass: rgba(255,255,255,0.07); --glass-border: rgba(255,255,255,0.14);
+    --text:#e9e9f5; --muted:#9aa0c0; --taskbar-h:48px;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;margin:0;font-family:'Segoe UI',ui-sans-serif,system-ui,Arial,sans-serif;color:var(--text);overflow:hidden;}
+  #desktop{
+    position:fixed;top:0;left:0;right:0;bottom:var(--taskbar-h);
+    background: radial-gradient(circle at 20% 20%, #29306b 0%, transparent 45%),
+                radial-gradient(circle at 80% 70%, #1f5a52 0%, transparent 40%),
+                linear-gradient(160deg,var(--bg1),var(--bg2) 60%, #0a0c1a);
+    overflow:hidden; user-select:none;
+  }
+  .stars{position:absolute;inset:0;background-image:
+      radial-gradient(1px 1px at 10% 20%, #fff 50%, transparent 51%),
+      radial-gradient(1px 1px at 30% 80%, #fff 50%, transparent 51%),
+      radial-gradient(1px 1px at 70% 30%, #fff 50%, transparent 51%),
+      radial-gradient(1px 1px at 85% 60%, #fff 50%, transparent 51%),
+      radial-gradient(1px 1px at 50% 50%, #fff 50%, transparent 51%),
+      radial-gradient(1px 1px at 90% 15%, #fff 50%, transparent 51%),
+      radial-gradient(1px 1px at 15% 65%, #fff 50%, transparent 51%);
+      opacity:.5;}
+
+  /* desktop icons */
+  .icons{position:absolute;top:16px;left:16px;display:flex;flex-direction:column;gap:18px;z-index:2;}
+  .icon{width:78px;text-align:center;cursor:pointer;padding:6px;border-radius:10px;}
+  .icon:hover{background:rgba(255,255,255,0.08);}
+  .icon .glyph{font-size:30px;display:block;width:48px;height:48px;line-height:48px;margin:0 auto 4px;border-radius:12px;
+      background:var(--glass); border:1px solid var(--glass-border); backdrop-filter:blur(6px);}
+  .icon .label{font-size:11.5px;color:var(--text);text-shadow:0 1px 3px #000;}
+
+  /* taskbar */
+  #taskbar{
+    position:fixed;left:0;right:0;bottom:0;height:var(--taskbar-h);
+    background:rgba(12,14,30,0.85); backdrop-filter:blur(14px);
+    border-top:1px solid var(--glass-border);
+    display:flex;align-items:center;gap:8px;padding:0 10px;z-index:1000;
+  }
+  #startBtn{
+    display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--accent),#5a3df0);
+    border:none;color:#fff;padding:8px 14px;border-radius:8px;font-weight:600;cursor:pointer;font-size:13px;
+  }
+  #startBtn:hover{filter:brightness(1.1);}
+  #taskApps{display:flex;gap:6px;flex:1;overflow-x:auto;}
+  .taskApp{
+    background:var(--glass);border:1px solid var(--glass-border);border-radius:8px;color:var(--text);
+    padding:6px 12px;font-size:12.5px;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;
+  }
+  .taskApp.active{background:rgba(124,92,255,0.35);border-color:var(--accent);}
+  #clock{margin-left:auto;color:var(--muted);font-size:13px;padding:0 10px;min-width:130px;text-align:right;}
+
+  /* start menu */
+  #startMenu{
+    position:fixed; bottom:var(--taskbar-h); left:8px; width:300px;
+    background:rgba(18,20,40,0.92); backdrop-filter:blur(16px);
+    border:1px solid var(--glass-border); border-radius:14px; padding:14px;
+    display:none; z-index:1001; box-shadow:0 20px 50px rgba(0,0,0,0.5);
+  }
+  #startMenu h3{margin:2px 6px 10px;font-size:14px;color:var(--muted);font-weight:600;letter-spacing:.5px;}
+  .startItem{display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:8px;cursor:pointer;font-size:13.5px;}
+  .startItem:hover{background:rgba(255,255,255,0.08);}
+  .startItem .g{width:30px;text-align:center;font-size:18px;}
+  #startFooter{border-top:1px solid var(--glass-border);margin-top:10px;padding-top:10px;font-size:11.5px;color:var(--muted);display:flex;justify-content:space-between;}
+
+  /* windows */
+  .window{
+    position:absolute; min-width:320px; min-height:200px;
+    background:rgba(20,22,42,0.92); backdrop-filter:blur(10px);
+    border:1px solid var(--glass-border); border-radius:12px; overflow:hidden;
+    box-shadow:0 25px 60px rgba(0,0,0,0.55); display:flex; flex-direction:column;
+  }
+  .titlebar{
+    height:38px; background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.0));
+    display:flex;align-items:center;padding:0 10px;cursor:move;border-bottom:1px solid var(--glass-border);gap:8px;
+  }
+  .titlebar .ttitle{font-size:12.5px;font-weight:600;flex:1;display:flex;align-items:center;gap:6px;color:var(--text);}
+  .winbtn{width:13px;height:13px;border-radius:50%;border:none;cursor:pointer;}
+  .winbtn.min{background:#ffbd44;}
+  .winbtn.max{background:#00ca56;}
+  .winbtn.close{background:#ff605c;}
+  .wbody{flex:1;display:flex;flex-direction:column;min-height:0;}
+  .resizer{position:absolute;right:0;bottom:0;width:16px;height:16px;cursor:nwse-resize;}
+
+  /* terminal */
+  .term{flex:1;background:#0a0c16;color:#c9f7d8;font-family:'Cascadia Code',Consolas,'Courier New',monospace;
+        font-size:13.5px;padding:10px 12px;overflow-y:auto;line-height:1.45;}
+  .term .line{white-space:pre-wrap;word-break:break-all;}
+  .term .prompt{color:#7c5cff;}
+  .term .path{color:#00d9c0;}
+  .term-input-row{display:flex;}
+  .term-input-row input{
+    flex:1;background:transparent;border:none;outline:none;color:#e9e9f5;font-family:inherit;font-size:13.5px;
+  }
+  .err{color:#ff7b7b;}
+  .ok{color:#8effa1;}
+  .hint{color:#9aa0c0;}
+
+  /* browser */
+  .browser-bar{display:flex;align-items:center;gap:6px;padding:8px;background:rgba(255,255,255,0.04);border-bottom:1px solid var(--glass-border);}
+  .browser-bar button{background:var(--glass);border:1px solid var(--glass-border);color:var(--text);border-radius:6px;padding:6px 9px;cursor:pointer;font-size:13px;}
+  .browser-bar button:hover{background:rgba(255,255,255,0.12);}
+  .browser-bar input{flex:1;background:rgba(0,0,0,0.3);border:1px solid var(--glass-border);border-radius:18px;padding:7px 14px;color:var(--text);font-size:13px;outline:none;}
+  .browser-frame{flex:1;border:none;width:100%;height:100%;background:#fff;}
+  .browser-home{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:linear-gradient(160deg,#11132a,#1d2147);color:#e9e9f5;}
+  .browser-home h1{font-size:32px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent;margin:0;}
+  .browser-home .searchbox{width:60%;max-width:480px;display:flex;}
+  .browser-home .searchbox input{flex:1;padding:12px 16px;border-radius:24px 0 0 24px;border:1px solid var(--glass-border);background:rgba(255,255,255,0.06);color:#fff;outline:none;font-size:14px;}
+  .browser-home .searchbox button{padding:12px 18px;border-radius:0 24px 24px 0;border:1px solid var(--glass-border);background:var(--accent);color:#fff;cursor:pointer;}
+  .quicklinks{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .qlink{background:var(--glass);border:1px solid var(--glass-border);padding:10px 16px;border-radius:10px;cursor:pointer;font-size:12.5px;}
+  .qlink:hover{background:rgba(255,255,255,0.12);}
+  .browser-note{font-size:11px;color:var(--muted);max-width:70%;text-align:center;}
+
+  /* file manager */
+  .fm{flex:1;display:flex;flex-direction:column;background:#11132a;}
+  .fm-path{padding:8px 12px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--glass-border);}
+  .fm-grid{flex:1;overflow-y:auto;display:flex;flex-wrap:wrap;gap:14px;padding:16px;align-content:flex-start;}
+  .fm-item{width:84px;text-align:center;cursor:pointer;padding:8px 4px;border-radius:8px;}
+  .fm-item:hover{background:rgba(255,255,255,0.08);}
+  .fm-item .fg{font-size:28px;}
+  .fm-item .fl{font-size:11px;word-break:break-all;color:var(--text);}
+
+  /* about / monitor */
+  .panel{flex:1;padding:18px;overflow-y:auto;font-size:13px;color:var(--text);}
+  .panel h2{margin-top:0;color:var(--accent2);}
+  .kv{display:grid;grid-template-columns:140px 1fr;gap:6px 10px;margin:10px 0;}
+  .kv b{color:var(--muted);}
+  table.proc{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px;}
+  table.proc th,table.proc td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--glass-border);}
+  table.proc th{color:var(--muted);font-weight:600;}
+  .bar-bg{background:rgba(255,255,255,0.08);border-radius:6px;height:8px;overflow:hidden;margin-top:4px;}
+  .bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));}
+  .killbtn{background:#ff605c;border:none;color:#fff;border-radius:5px;padding:2px 8px;font-size:11px;cursor:pointer;}
+
+  ::-webkit-scrollbar{width:9px;height:9px;}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.18);border-radius:6px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+
+  #bootScreen{position:fixed;inset:0;background:#05060f;color:#9be8c4;z-index:5000;display:flex;flex-direction:column;
+      align-items:center;justify-content:center;font-family:Consolas,monospace;}
+  #bootScreen .logo{font-size:42px;font-weight:700;letter-spacing:2px;margin-bottom:18px;
+      background:linear-gradient(90deg,#7c5cff,#00d9c0);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  #bootLog{font-size:12.5px;width:420px;height:140px;overflow:hidden;color:#7fdca0;}
+  .spinner{width:26px;height:26px;border:3px solid #233;border-top-color:#7c5cff;border-radius:50%;animation:spin 0.8s linear infinite;margin-top:16px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<div id="bootScreen">
+  <div class="logo">⟡ NebulaOS</div>
+  <div id="bootLog"></div>
+  <div class="spinner"></div>
+</div>
+
+<div id="desktop">
+  <div class="stars"></div>
+  <div class="icons" id="iconsContainer"></div>
+</div>
+
+<div id="taskbar">
+  <button id="startBtn">⟡ Start</button>
+  <div id="taskApps"></div>
+  <div id="clock">--:--:--</div>
+</div>
+
+<div id="startMenu">
+  <h3>Applications</h3>
+  <div id="startApps"></div>
+  <div id="startFooter"><span>NebulaOS v1.0</span><span id="startClock"></span></div>
+</div>
+
+<div id="windowsLayer"></div>
+
+<script>
+/* =========================================================================
+   NEBULA-OS  —  a self-contained simulated kernel + window manager
+   running entirely in a single HTML file.
+   ========================================================================= */
+
+/* ---------------------------- KERNEL LAYER ---------------------------- */
+const Kernel = (() => {
+  let pidCounter = 1;
+  const processes = new Map(); // pid -> {pid,name,cpu,mem,started}
+  const listeners = [];
+
+  // ---- Virtual File System (in-memory tree) ----
+  const now = () => new Date().toISOString();
+  const FS = {
+    type:'dir', name:'/', children:{
+      home:{type:'dir', name:'home', children:{
+        user:{type:'dir', name:'user', children:{
+          'readme.txt':{type:'file', name:'readme.txt', content:
+`Welcome to NebulaOS!
+
+This is a simulated operating system running entirely inside a single
+HTML file: a kernel (process table + virtual filesystem + syscalls),
+a window manager, a terminal/shell, and a web browser.
+
+Try the terminal:
+  help          show commands
+  ls / cd / cat / mkdir / touch / rm / echo
+  ps            list kernel processes
+  neofetch      system info
+  open browser  launch the browser app
+
+Have fun exploring!`},
+          'notes.md':{type:'file', name:'notes.md', content:'# Notes\n\n- Build cool stuff\n- Ship it\n'},
+          projects:{type:'dir', name:'projects', children:{}}
+        }}
+      }},
+      etc:{type:'dir', name:'etc', children:{
+        'os-release':{type:'file', name:'os-release', content:'NAME="NebulaOS"\nVERSION="1.0"\nKERNEL="nebkrnl 6.6.0-sim"\n'}
+      }},
+      bin:{type:'dir', name:'bin', children:{}},
+      tmp:{type:'dir', name:'tmp', children:{}}
+    }
+  };
+
+  function resolvePath(cwdArr, pathStr){
+    let parts;
+    if(pathStr.startsWith('/')) parts = pathStr.split('/').filter(Boolean);
+    else parts = cwdArr.concat(pathStr.split('/').filter(Boolean));
+    const out = [];
+    for(const p of parts){
+      if(p === '.') continue;
+      if(p === '..'){ out.pop(); continue; }
+      out.push(p);
+    }
+    return out;
+  }
+  function getNode(pathArr){
+    let node = FS;
+    for(const p of pathArr){
+      if(!node.children || !node.children[p]) return null;
+      node = node.children[p];
+    }
+    return node;
+  }
+  function getParent(pathArr){
+    if(pathArr.length===0) return null;
+    return getNode(pathArr.slice(0,-1));
+  }
+
+  // ---- Process table ----
+  function spawn(name, meta={}){
+    const pid = pidCounter++;
+    const proc = {pid, name, cpu:+(Math.random()*8+0.5).toFixed(1), mem:+(Math.random()*60+10).toFixed(1), started:now(), ...meta};
+    processes.set(pid, proc);
+    emit();
+    return pid;
+  }
+  function kill(pid){
+    const existed = processes.delete(pid);
+    emit();
+    return existed;
+  }
+  function list(){ return Array.from(processes.values()); }
+  function emit(){ listeners.forEach(fn=>fn(list())); }
+  function onChange(fn){ listeners.push(fn); }
+
+  // jiggle cpu/mem periodically for realism
+  setInterval(()=>{
+    let changed=false;
+    processes.forEach(p=>{
+      if(p.system) return;
+      p.cpu = Math.max(0.1, +(p.cpu + (Math.random()*2-1)).toFixed(1));
+      p.mem = Math.max(1, +(p.mem + (Math.random()*4-2)).toFixed(1));
+      changed=true;
+    });
+    if(changed) emit();
+  }, 2000);
+
+  // base kernel/system processes
+  spawn('nebkrnl', {system:true, cpu:0.4, mem:38.2});
+  spawn('windowmanager.svc', {system:true, cpu:1.1, mem:64.5});
+  spawn('init', {system:true, cpu:0.1, mem:4.2});
+
+  return { FS, resolvePath, getNode, getParent, spawn, kill, list, onChange, pidNext:()=>pidCounter };
+})();
+
+/* ---------------------------- WINDOW MANAGER ---------------------------- */
+const WM = (() => {
+  const layer = document.getElementById('windowsLayer');
+  const taskApps = document.getElementById('taskApps');
+  let zTop = 10;
+  let openWindows = new Map(); // id -> {el, taskEl, pid, title}
+  let winCounter = 0;
+  let cascadeX = 60, cascadeY = 40;
+
+  function createWindow({title, icon='🗖', width=560, height=380, x, y, body, onClose, resizable=true, pid}){
+    const id = 'win'+(++winCounter);
+    const el = document.createElement('div');
+    el.className='window';
+    el.style.width = width+'px';
+    el.style.height = height+'px';
+    if(x===undefined){ x = cascadeX; cascadeX += 30; if(cascadeX>window.innerWidth-400) cascadeX=60; }
+    if(y===undefined){ y = cascadeY; cascadeY += 30; if(cascadeY>window.innerHeight-400) cascadeY=40; }
+    el.style.left = x+'px';
+    el.style.top = y+'px';
+    el.style.zIndex = ++zTop;
+
+    el.innerHTML = `
+      <div class="titlebar">
+        <span class="ttitle">${icon} <span class="ttext">${title}</span></span>
+        <button class="winbtn min" title="Minimize"></button>
+        <button class="winbtn max" title="Maximize"></button>
+        <button class="winbtn close" title="Close"></button>
+      </div>
+      <div class="wbody"></div>
+      ${resizable?'<div class="resizer"></div>':''}
+    `;
+    layer.appendChild(el);
+    const wbody = el.querySelector('.wbody');
+    if(typeof body === 'function') body(wbody, el); else wbody.appendChild(body);
+
+    // taskbar entry
+    const taskEl = document.createElement('div');
+    taskEl.className='taskApp active';
+    taskEl.innerHTML = `<span>${icon}</span><span>${title}</span>`;
+    taskApps.appendChild(taskEl);
+
+    function focus(){
+      el.style.zIndex = ++zTop;
+      document.querySelectorAll('.taskApp').forEach(t=>t.classList.remove('active'));
+      taskEl.classList.add('active');
+    }
+    el.addEventListener('mousedown', focus);
+    taskEl.addEventListener('click', ()=>{
+      if(el.style.display==='none'){ el.style.display='flex'; focus(); }
+      else { el.style.display='none'; taskEl.classList.remove('active'); }
+    });
+
+    // drag
+    const titlebar = el.querySelector('.titlebar');
+    let drag=null;
+    titlebar.addEventListener('mousedown', (e)=>{
+      if(e.target.classList.contains('winbtn')) return;
+      drag = {sx:e.clientX, sy:e.clientY, ox:el.offsetLeft, oy:el.offsetTop};
+      document.addEventListener('mousemove', onDrag);
+      document.addEventListener('mouseup', stopDrag);
+    });
+    function onDrag(e){
+      if(!drag) return;
+      el.style.left = Math.max(0, drag.ox + (e.clientX-drag.sx)) + 'px';
+      el.style.top = Math.max(0, drag.oy + (e.clientY-drag.sy)) + 'px';
+    }
+    function stopDrag(){ drag=null; document.removeEventListener('mousemove', onDrag); document.removeEventListener('mouseup', stopDrag); }
+
+    // resize
+    if(resizable){
+      const rez = el.querySelector('.resizer');
+      let rs=null;
+      rez.addEventListener('mousedown', (e)=>{
+        rs = {sx:e.clientX, sy:e.clientY, w:el.offsetWidth, h:el.offsetHeight};
+        e.stopPropagation();
+        document.addEventListener('mousemove', onResize);
+        document.addEventListener('mouseup', stopResize);
+      });
+      function onResize(e){
+        if(!rs) return;
+        el.style.width = Math.max(320, rs.w + (e.clientX-rs.sx)) + 'px';
+        el.style.height = Math.max(200, rs.h + (e.clientY-rs.sy)) + 'px';
+      }
+      function stopResize(){ rs=null; document.removeEventListener('mousemove', onResize); document.removeEventListener('mouseup', stopResize); }
+    }
+
+    // controls
+    let maximized=false, preRect=null;
+    el.querySelector('.winbtn.close').addEventListener('click', ()=>{
+      el.remove(); taskEl.remove(); openWindows.delete(id);
+      if(onClose) onClose();
+      if(pid) Kernel.kill(pid);
+    });
+    el.querySelector('.winbtn.min').addEventListener('click', ()=>{
+      el.style.display='none'; taskEl.classList.remove('active');
+    });
+    el.querySelector('.winbtn.max').addEventListener('click', ()=>{
+      if(!maximized){
+        preRect = {l:el.style.left, t:el.style.top, w:el.style.width, h:el.style.height};
+        el.style.left='0px'; el.style.top='0px';
+        el.style.width='100%'; el.style.height='100%';
+        maximized=true;
+      } else {
+        el.style.left=preRect.l; el.style.top=preRect.t; el.style.width=preRect.w; el.style.height=preRect.h;
+        maximized=false;
+      }
+    });
+
+    focus();
+    openWindows.set(id, {el, taskEl});
+    return {id, el, wbody, focus, close:()=>el.querySelector('.winbtn.close').click()};
+  }
+
+  return { createWindow };
+})();
+
+/* ---------------------------- APP: TERMINAL ---------------------------- */
+function launchTerminal(){
+  const pid = Kernel.spawn('bash', {cpu:2.0, mem:18});
+  WM.createWindow({title:'Terminal', icon:'⌨', width:620, height:400, pid,
+    body:(wbody)=>{
+      let cwd = ['home','user'];
+      const histArr = []; let histIdx=-1;
+
+      wbody.innerHTML = `<div class="term" id="t-out"></div>
+        <div class="term-input-row" style="padding:0 12px 10px 12px;background:#0a0c16;">
+          <span class="prompt" id="t-prompt"></span>
+          <input id="t-in" autocomplete="off" spellcheck="false"/>
+        </div>`;
+      const out = wbody.querySelector('#t-out');
+      const input = wbody.querySelector('#t-in');
+      const promptSpan = wbody.querySelector('#t-prompt');
+
+      function pathStr(){ return '/'+cwd.join('/'); }
+      function updatePrompt(){ promptSpan.innerHTML = `user@nebula <span class="path">${pathStr()}</span> $ `; }
+      function print(html=''){ const d=document.createElement('div'); d.className='line'; d.innerHTML=html; out.appendChild(d); out.scrollTop=out.scrollHeight; }
+      function printText(t=''){ print(escapeHtml(t)); }
+      function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+      print(`<span class="hint">NebulaOS shell — type 'help' for commands.</span>`);
+      updatePrompt();
+
+      const commands = {
+        help(){
+          printText(`Available commands:
+
+  Files & navigation:
+    ls [path]        list directory contents
+    cd <path>         change directory
+    pwd                print working directory
+    cat <file>         show file contents
+    mkdir <dir>        create directory
+    touch <file>       create empty file
+    write <f> <text>   write/overwrite text to file
+    rm <name>          remove file/dir
+    mv <src> <dest>    move/rename
+    cp <src> <dest>    copy
+    find <term>        search filenames
+    grep <pat> <file>  search inside a file
+    wc <file>          count lines/words/chars
+    tree [path]        show directory tree
+
+  System:
+    ps / top           list kernel processes
+    kill <pid>         kill a process
+    free                memory usage
+    df                  disk usage
+    uptime              time since boot
+    env                  environment variables
+    uname [-a]          system info
+    neofetch             system info banner
+    sudo <cmd>           simulate elevated command
+    reboot               reload NebulaOS
+
+  Misc:
+    echo <text>         print text
+    whoami / date        
+    history              command history
+    man <cmd>            manual page (stub)
+    open <app>            launch app (browser, files, monitor, about, terminal)
+    clear / exit`);
+        },
+        pwd(){ printText(pathStr()); },
+        ls(args){
+          const target = args[0] ? Kernel.resolvePath(cwd, args[0]) : cwd;
+          const node = Kernel.getNode(target);
+          if(!node || node.type!=='dir'){ print(`<span class="err">ls: cannot access '${args[0]||''}': not a directory</span>`); return; }
+          const items = Object.values(node.children);
+          if(items.length===0){ print(`<span class="hint">(empty)</span>`); return; }
+          print(items.map(i=> i.type==='dir' ? `<span style="color:#7c5cff">${i.name}/</span>` : i.name).join('   '));
+        },
+        cd(args){
+          if(!args[0]){ cwd=['home','user']; updatePrompt(); return; }
+          const target = Kernel.resolvePath(cwd, args[0]);
+          const node = Kernel.getNode(target);
+          if(!node || node.type!=='dir'){ print(`<span class="err">cd: ${args[0]}: No such directory</span>`); return; }
+          cwd = target; updatePrompt();
+        },
+        cat(args){
+          if(!args[0]){ printText('usage: cat <file>'); return; }
+          const target = Kernel.resolvePath(cwd, args[0]);
+          const node = Kernel.getNode(target);
+          if(!node){ print(`<span class="err">cat: ${args[0]}: No such file</span>`); return; }
+          if(node.type==='dir'){ print(`<span class="err">cat: ${args[0]}: Is a directory</span>`); return; }
+          printText(node.content||'');
+        },
+        echo(args){ printText(args.join(' ')); },
+        mkdir(args){
+          if(!args[0]){ printText('usage: mkdir <name>'); return; }
+          const target = Kernel.resolvePath(cwd, args[0]);
+          const parent = Kernel.getParent(target);
+          if(!parent){ print(`<span class="err">mkdir: invalid path</span>`); return; }
+          const name = target[target.length-1];
+          parent.children[name] = {type:'dir', name, children:{}};
+        },
+        touch(args){
+          if(!args[0]){ printText('usage: touch <name>'); return; }
+          const target = Kernel.resolvePath(cwd, args[0]);
+          const parent = Kernel.getParent(target);
+          if(!parent){ print(`<span class="err">touch: invalid path</span>`); return; }
+          const name = target[target.length-1];
+          if(!parent.children[name]) parent.children[name] = {type:'file', name, content:''};
+        },
+        write(args){
+          if(args.length<1){ printText('usage: write <file> <text...>'); return; }
+          const target = Kernel.resolvePath(cwd, args[0]);
+          const parent = Kernel.getParent(target);
+          const name = target[target.length-1];
+          if(!parent){ print(`<span class="err">write: invalid path</span>`); return; }
+          parent.children[name] = {type:'file', name, content:args.slice(1).join(' ')};
+          print(`<span class="ok">written.</span>`);
+        },
+        rm(args){
+          if(!args[0]){ printText('usage: rm <name>'); return; }
+          const target = Kernel.resolvePath(cwd, args[0]);
+          const parent = Kernel.getParent(target);
+          const name = target[target.length-1];
+          if(!parent || !parent.children[name]){ print(`<span class="err">rm: ${args[0]}: No such file or directory</span>`); return; }
+          delete parent.children[name];
+        },
+        ps(){
+          const procs = Kernel.list();
+          print(`<span class="hint">PID    NAME                CPU%   MEM(MB)</span>`);
+          procs.forEach(p=>{
+            printText(`${String(p.pid).padEnd(7)}${p.name.padEnd(20)}${String(p.cpu).padEnd(7)}${p.mem}`);
+          });
+        },
+        kill(args){
+          const pid = parseInt(args[0]);
+          if(!pid){ printText('usage: kill <pid>'); return; }
+          const ok = Kernel.kill(pid);
+          print(ok? `<span class="ok">Process ${pid} terminated.</span>` : `<span class="err">kill: (${pid}) - No such process</span>`);
+        },
+        neofetch(){
+          print(`<span style="color:#7c5cff">⟡ NebulaOS</span> <span class="hint">v1.0 "Aurora"</span>
+<span class="hint">-----------------------</span>
+<b>Kernel:</b>   nebkrnl 6.6.0-sim
+<b>Uptime:</b>   ${Math.floor(performance.now()/1000)}s
+<b>Shell:</b>    nebbash 5.2
+<b>Procs:</b>    ${Kernel.list().length}
+<b>Host:</b>     browser-vm
+<b>Display:</b>  ${window.innerWidth}x${window.innerHeight}`);
+        },
+        clear(){ out.innerHTML=''; },
+        whoami(){ printText('user'); },
+        date(){ printText(new Date().toString()); },
+        uname(args){
+          if(args[0]==='-a') printText('NebulaOS nebkrnl 6.6.0-sim x86_64 GNU/Nebula');
+          else printText('NebulaOS nebkrnl 6.6.0-sim x86_64 (simulated)');
+        },
+        history(){ histArr.forEach((h,i)=> printText(`${i+1}  ${h}`)); },
+        mv(args){
+          if(args.length<2){ printText('usage: mv <src> <dest>'); return; }
+          const srcPath = Kernel.resolvePath(cwd, args[0]);
+          const srcParent = Kernel.getParent(srcPath);
+          const srcName = srcPath[srcPath.length-1];
+          if(!srcParent || !srcParent.children[srcName]){ print(`<span class="err">mv: cannot stat '${args[0]}'</span>`); return; }
+          const node = srcParent.children[srcName];
+          const destPath = Kernel.resolvePath(cwd, args[1]);
+          const destNode = Kernel.getNode(destPath);
+          let destParent, destName;
+          if(destNode && destNode.type==='dir'){ destParent = destNode; destName = srcName; }
+          else { destParent = Kernel.getParent(destPath); destName = destPath[destPath.length-1]; }
+          if(!destParent){ print(`<span class="err">mv: invalid destination</span>`); return; }
+          node.name = destName;
+          destParent.children[destName] = node;
+          delete srcParent.children[srcName];
+        },
+        cp(args){
+          if(args.length<2){ printText('usage: cp <src> <dest>'); return; }
+          const srcPath = Kernel.resolvePath(cwd, args[0]);
+          const node = Kernel.getNode(srcPath);
+          if(!node){ print(`<span class="err">cp: cannot stat '${args[0]}'</span>`); return; }
+          const copy = JSON.parse(JSON.stringify(node));
+          const destPath = Kernel.resolvePath(cwd, args[1]);
+          const destNode = Kernel.getNode(destPath);
+          let destParent, destName;
+          if(destNode && destNode.type==='dir'){ destParent = destNode; destName = copy.name; }
+          else { destParent = Kernel.getParent(destPath); destName = destPath[destPath.length-1]; copy.name = destName; }
+          if(!destParent){ print(`<span class="err">cp: invalid destination</span>`); return; }
+          destParent.children[destName] = copy;
+        },
+        find(args){
+          const term = args[0]||'';
+          const results=[];
+          function walk(node, path){
+            Object.values(node.children||{}).forEach(c=>{
+              const p = path+'/'+c.name;
+              if(c.name.includes(term)) results.push(p);
+              if(c.type==='dir') walk(c, p);
+            });
+          }
+          walk(Kernel.FS, '');
+          if(results.length===0) printText('No matches.'); else results.forEach(r=>printText(r));
+        },
+        grep(args){
+          if(args.length<2){ printText('usage: grep <pattern> <file>'); return; }
+          const target = Kernel.resolvePath(cwd, args[1]);
+          const node = Kernel.getNode(target);
+          if(!node || node.type!=='file'){ print(`<span class="err">grep: ${args[1]}: No such file</span>`); return; }
+          const lines = (node.content||'').split('\n').filter(l=>l.includes(args[0]));
+          if(lines.length===0) printText('(no matches)'); else lines.forEach(l=>printText(l));
+        },
+        wc(args){
+          if(!args[0]){ printText('usage: wc <file>'); return; }
+          const target = Kernel.resolvePath(cwd, args[0]);
+          const node = Kernel.getNode(target);
+          if(!node || node.type!=='file'){ print(`<span class="err">wc: ${args[0]}: No such file</span>`); return; }
+          const c = node.content||'';
+          printText(`${c.split('\n').length} lines  ${c.split(/\s+/).filter(Boolean).length} words  ${c.length} chars`);
+        },
+        tree(args){
+          const startPath = args[0] ? Kernel.resolvePath(cwd, args[0]) : cwd;
+          const startNode = Kernel.getNode(startPath);
+          if(!startNode || startNode.type!=='dir'){ print(`<span class="err">tree: not a directory</span>`); return; }
+          const lines=[];
+          function walk(node, prefix){
+            const items = Object.values(node.children||{});
+            items.forEach((c,i)=>{
+              const last = i===items.length-1;
+              lines.push(prefix + (last?'└── ':'├── ') + c.name + (c.type==='dir'?'/':''));
+              if(c.type==='dir') walk(c, prefix + (last?'    ':'│   '));
+            });
+          }
+          printText('.');
+          walk(startNode, '');
+          lines.forEach(l=>printText(l));
+        },
+        env(){ printText('USER=user\nHOME=/home/user\nSHELL=/bin/nebbash\nOS=NebulaOS\nTERM=neb-256color'); },
+        df(){ printText('Filesystem      Size  Used  Avail  Use%\nnebula-vfs      1.0G  4.2M  996M    1%'); },
+        free(){
+          const totalMem = Kernel.list().reduce((a,p)=>a+p.mem,0);
+          printText(`              total      used      free\nMem(MB)       8192      ${Math.round(totalMem)}      ${8192-Math.round(totalMem)}`);
+        },
+        top(){ commands.ps(); },
+        uptime(){ printText(`up ${Math.floor(performance.now()/1000)} seconds, 1 user`); },
+        man(args){
+          if(!args[0]){ printText('What manual page do you want?'); return; }
+          printText(`${args[0]}(1)  —  NebulaOS manual\n\nNo full manual installed in this simulation. Try 'help' for a quick summary of available commands.`);
+        },
+        sudo(args){ printText(`[sudo] this is a simulation — running '${args.join(' ')}' as user anyway.`); const c2=args[0]; if(c2 && commands[c2]) commands[c2](args.slice(1)); },
+        reboot(){ print('<span class="hint">Rebooting NebulaOS...</span>'); setTimeout(()=>location.reload(), 700); },
+        exit(){ print('<span class="hint">Closing terminal...</span>'); setTimeout(()=> wbody.closest('.window')?.querySelector('.winbtn.close')?.click(), 300); },
+        open(args){
+          const app = (args[0]||'').toLowerCase();
+          const map = {browser:launchBrowser, files:launchFiles, monitor:launchMonitor, about:launchAbout, terminal:launchTerminal, settings:launchMonitor};
+          if(map[app]){ map[app](); print(`<span class="ok">Launching ${app}...</span>`); }
+          else printText(`open: unknown app '${args[0]||''}'. Try: browser, files, monitor, about`);
+        }
+      };
+
+      input.addEventListener('keydown', (e)=>{
+        if(e.key==='Enter'){
+          const raw = input.value;
+          print(`<span class="prompt">user@nebula</span> <span class="path">${pathStr()}</span> $ ${escapeHtml(raw)}`);
+          if(raw.trim()){ histArr.push(raw); histIdx = histArr.length; }
+          const parts = raw.trim().split(/\s+/).filter(Boolean);
+          const cmd = parts[0];
+          const args = parts.slice(1);
+          if(cmd){
+            if(commands[cmd]) commands[cmd](args);
+            else print(`<span class="err">command not found: ${escapeHtml(cmd)}</span> <span class="hint">(try 'help')</span>`);
+          }
+          input.value='';
+        } else if(e.key==='ArrowUp'){
+          if(histIdx>0){ histIdx--; input.value = histArr[histIdx]; }
+          e.preventDefault();
+        } else if(e.key==='ArrowDown'){
+          if(histIdx < histArr.length-1){ histIdx++; input.value = histArr[histIdx]; }
+          else { histIdx = histArr.length; input.value=''; }
+          e.preventDefault();
+        }
+      });
+      setTimeout(()=>input.focus(), 50);
+      wbody.addEventListener('mousedown', (e)=>{ if(e.target.tagName!=='INPUT') input.focus(); });
+    }
+  });
+}
+
+/* ---------------------------- APP: BROWSER ---------------------------- */
+function launchBrowser(startUrl){
+  const pid = Kernel.spawn('nebula-browser', {cpu:6, mem:140});
+  WM.createWindow({title:'Browser', icon:'🌐', width:780, height:520, pid,
+    body:(wbody)=>{
+      wbody.innerHTML = `
+        <div class="browser-bar">
+          <button id="b-back">←</button>
+          <button id="b-fwd">→</button>
+          <button id="b-reload">⟳</button>
+          <button id="b-home">⌂</button>
+          <input id="b-url" placeholder="Search or enter address" />
+          <button id="b-go">Go</button>
+        </div>
+        <div id="b-content" style="flex:1;position:relative;display:flex;"></div>
+      `;
+      const content = wbody.querySelector('#b-content');
+      const urlInput = wbody.querySelector('#b-url');
+      let history=[], hidx=-1;
+
+      function homeView(){
+        content.innerHTML = `<div class="browser-home">
+            <h1>⟡ NebulaSearch</h1>
+            <div class="searchbox">
+              <input id="home-q" placeholder="Search the web or type a URL"/>
+              <button id="home-go">Go</button>
+            </div>
+            <div class="quicklinks">
+              <div class="qlink" data-u="https://www.wikipedia.org">Wikipedia</div>
+              <div class="qlink" data-u="https://www.google.com">Google</div>
+              <div class="qlink" data-u="https://news.ycombinator.com">Hacker News</div>
+              <div class="qlink" data-u="https://github.com">GitHub</div>
+              <div class="qlink" data-u="https://www.anthropic.com">Anthropic</div>
+            </div>
+            <div class="browser-note">Note: some sites block embedding in frames (X-Frame-Options); if a page won't load, NebulaOS will show a notice with a link to open it in a real new tab.</div>
+          </div>`;
+        const q = content.querySelector('#home-q');
+        content.querySelector('#home-go').onclick = ()=> go(q.value);
+        q.addEventListener('keydown', e=>{ if(e.key==='Enter') go(q.value); });
+        content.querySelectorAll('.qlink').forEach(el=> el.addEventListener('click', ()=> go(el.dataset.u)));
+        urlInput.value='';
+      }
+
+      function normalize(u){
+        u = u.trim();
+        if(!u) return null;
+        if(/^https?:\/\//i.test(u)) return u;
+        if(/^[\w-]+\.[a-z]{2,}([/?].*)?$/i.test(u) && !u.includes(' ')) return 'https://'+u;
+        return 'https://www.google.com/search?q='+encodeURIComponent(u)+'&igu=1';
+      }
+
+      function loadFrame(url){
+        content.innerHTML = '';
+        const iframe = document.createElement('iframe');
+        iframe.className='browser-frame';
+        iframe.src = url;
+        let loaded=false;
+        iframe.onload = ()=>{ loaded=true; };
+        content.appendChild(iframe);
+        // detect blocked frames after a delay (best-effort, can't always detect due to cross-origin)
+        setTimeout(()=>{
+          try{
+            // if same-origin and blank, show fallback - best effort only
+          }catch(e){}
+        }, 1200);
+        const fallback = document.createElement('div');
+        fallback.style.cssText='position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:#11132a;color:#e9e9f5;gap:10px;text-align:center;padding:20px;';
+        fallback.innerHTML = `<div style="font-size:40px;">🚫</div><div>This site refused to load inside NebulaOS's embedded browser.</div>
+          <a href="${url}" target="_blank" style="color:#00d9c0;">Open ${url} in a new real tab ↗</a>`;
+        content.style.position='relative';
+        content.appendChild(fallback);
+        iframe.addEventListener('error', ()=>{ fallback.style.display='flex'; iframe.style.display='none'; });
+      }
+
+      function go(raw){
+        const url = normalize(raw);
+        if(!url) { homeView(); return; }
+        history = history.slice(0,hidx+1); history.push(url); hidx = history.length-1;
+        urlInput.value = url.startsWith('https://www.google.com/search')? raw : url;
+        loadFrame(url);
+      }
+      wbody.go = go;
+
+      wbody.querySelector('#b-go').onclick = ()=> go(urlInput.value);
+      urlInput.addEventListener('keydown', e=>{ if(e.key==='Enter') go(urlInput.value); });
+      wbody.querySelector('#b-home').onclick = ()=>{ hidx=-1; history=[]; homeView(); };
+      wbody.querySelector('#b-back').onclick = ()=>{ if(hidx>0){ hidx--; loadFrame(history[hidx]); urlInput.value=history[hidx]; } else { hidx=-1; homeView(); } };
+      wbody.querySelector('#b-fwd').onclick = ()=>{ if(hidx<history.length-1){ hidx++; loadFrame(history[hidx]); urlInput.value=history[hidx]; } };
+      wbody.querySelector('#b-reload').onclick = ()=>{ if(history[hidx]) loadFrame(history[hidx]); };
+
+      if(startUrl) go(startUrl); else homeView();
+    }
+  });
+}
+
+/* ---------------------------- APP: FILE MANAGER ---------------------------- */
+function launchFiles(){
+  const pid = Kernel.spawn('nebula-files', {cpu:1.2, mem:30});
+  WM.createWindow({title:'Files', icon:'📁', width:560, height:420, pid,
+    body:(wbody)=>{
+      let cwd = [];
+      wbody.innerHTML = `<div class="fm"><div class="fm-path" id="fm-path"></div><div class="fm-grid" id="fm-grid"></div></div>`;
+      const grid = wbody.querySelector('#fm-grid');
+      const pathEl = wbody.querySelector('#fm-path');
+      function render(){
+        pathEl.textContent = '/'+cwd.join('/');
+        const node = Kernel.getNode(cwd) || Kernel.FS;
+        grid.innerHTML='';
+        if(cwd.length>0){
+          const up = document.createElement('div');
+          up.className='fm-item'; up.innerHTML=`<div class="fg">⬆️</div><div class="fl">..</div>`;
+          up.onclick=()=>{ cwd=cwd.slice(0,-1); render(); };
+          grid.appendChild(up);
+        }
+        Object.values(node.children).forEach(item=>{
+          const el = document.createElement('div');
+          el.className='fm-item';
+          el.innerHTML = `<div class="fg">${item.type==='dir'?'📁':'📄'}</div><div class="fl">${item.name}</div>`;
+          el.ondblclick = ()=>{
+            if(item.type==='dir'){ cwd = cwd.concat(item.name); render(); }
+            else {
+              WM.createWindow({title:item.name, icon:'📄', width:480, height:380, body:(b)=>{
+                b.innerHTML = `<textarea style="flex:1;border:none;outline:none;background:#0d0f1f;color:#e9e9f5;padding:14px;font-family:Consolas,monospace;font-size:13px;resize:none;">${item.content.replace(/</g,'&lt;')}</textarea>`;
+                const ta = b.querySelector('textarea');
+                ta.addEventListener('input', ()=> item.content = ta.value);
+              }});
+            }
+          };
+          grid.appendChild(el);
+        });
+      }
+      render();
+    }
+  });
+}
+
+/* ---------------------------- APP: TASK MONITOR ---------------------------- */
+function launchMonitor(){
+  const pid = Kernel.spawn('nebula-monitor', {cpu:1.5, mem:22});
+  WM.createWindow({title:'Task Monitor', icon:'📊', width:480, height:420, pid,
+    body:(wbody)=>{
+      wbody.innerHTML = `<div class="panel"><h2>System Monitor</h2><div id="mon-body"></div></div>`;
+      const body = wbody.querySelector('#mon-body');
+      function render(procs){
+        const totalCpu = procs.reduce((a,p)=>a+p.cpu,0);
+        const totalMem = procs.reduce((a,p)=>a+p.mem,0);
+        body.innerHTML = `
+          <div>CPU Load <div class="bar-bg"><div class="bar-fill" style="width:${Math.min(100,totalCpu)}%"></div></div></div>
+          <div style="margin-top:10px;">Memory Used (sim) <div class="bar-bg"><div class="bar-fill" style="width:${Math.min(100,totalMem/8)}%"></div></div></div>
+          <table class="proc"><tr><th>PID</th><th>Name</th><th>CPU%</th><th>MEM</th><th></th></tr>
+          ${procs.map(p=>`<tr><td>${p.pid}</td><td>${p.name}</td><td>${p.cpu}</td><td>${p.mem}</td>
+            <td>${p.system?'':`<button class="killbtn" data-pid="${p.pid}">kill</button>`}</td></tr>`).join('')}
+          </table>`;
+        body.querySelectorAll('.killbtn').forEach(btn=>{
+          btn.onclick = ()=> Kernel.kill(parseInt(btn.dataset.pid));
+        });
+      }
+      render(Kernel.list());
+      Kernel.onChange(render);
+    }
+  });
+}
+
+/* ---------------------------- APP: ABOUT ---------------------------- */
+function launchAbout(){
+  WM.createWindow({title:'About NebulaOS', icon:'ℹ️', width:420, height:380,
+    body:(wbody)=>{
+      wbody.innerHTML = `<div class="panel">
+        <h2>⟡ NebulaOS</h2>
+        <p>A fully simulated operating system running inside one HTML file — complete with a kernel layer (virtual filesystem + process table), a window manager, a terminal shell, and a web browser.</p>
+        <div class="kv">
+          <b>Version</b><span>1.0 "Aurora"</span>
+          <b>Kernel</b><span>nebkrnl 6.6.0-sim</span>
+          <b>Shell</b><span>nebbash 5.2</span>
+          <b>Engine</b><span>Your real browser ✨</span>
+        </div>
+        <p style="color:var(--muted);font-size:12px;">Everything here — files, processes, windows — lives only in this tab's memory and resets on reload.</p>
+      </div>`;
+    }
+  });
+}
+
+/* ---------------------------- DESKTOP / START MENU ---------------------------- */
+const APPS = [
+  {id:'terminal', name:'Terminal', icon:'⌨', fn:launchTerminal},
+  {id:'browser', name:'Browser', icon:'🌐', fn:()=>launchBrowser()},
+  {id:'files', name:'Files', icon:'📁', fn:launchFiles},
+  {id:'monitor', name:'Monitor', icon:'📊', fn:launchMonitor},
+  {id:'about', name:'About', icon:'ℹ️', fn:launchAbout},
+];
+
+function buildDesktopIcons(){
+  const c = document.getElementById('iconsContainer');
+  APPS.forEach(app=>{
+    const el = document.createElement('div');
+    el.className='icon';
+    el.innerHTML = `<span class="glyph">${app.icon}</span><span class="label">${app.name}</span>`;
+    el.addEventListener('click', (e)=>{ e.stopPropagation(); app.fn(); });
+    c.appendChild(el);
+  });
+}
+function buildStartMenu(){
+  const c = document.getElementById('startApps');
+  APPS.forEach(app=>{
+    const el = document.createElement('div');
+    el.className='startItem';
+    el.innerHTML = `<span class="g">${app.icon}</span><span>${app.name}</span>`;
+    el.addEventListener('click', ()=>{ app.fn(); document.getElementById('startMenu').style.display='none'; });
+    c.appendChild(el);
+  });
+}
+
+document.getElementById('startBtn').addEventListener('click', (e)=>{
+  e.stopPropagation();
+  const m = document.getElementById('startMenu');
+  m.style.display = m.style.display==='block' ? 'none' : 'block';
+});
+document.addEventListener('click', ()=>{ document.getElementById('startMenu').style.display='none'; });
+document.getElementById('startMenu').addEventListener('click', e=>e.stopPropagation());
+
+function tickClock(){
+  const d = new Date();
+  const s = d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'}) + ' · ' + d.toLocaleDateString();
+  document.getElementById('clock').textContent = s;
+  const sc = document.getElementById('startClock'); if(sc) sc.textContent = d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+}
+setInterval(tickClock, 1000); tickClock();
+
+/* ---------------------------- BOOT SEQUENCE ---------------------------- */
+function boot(){
+  const lines = [
+    '[ OK ] Starting nebkrnl 6.6.0-sim ...',
+    '[ OK ] Mounting virtual filesystem at /',
+    '[ OK ] Initializing process table',
+    '[ OK ] Starting window manager service',
+    '[ OK ] Loading user session: user',
+    '[ OK ] Starting shell (nebbash) ...',
+    '[ OK ] Welcome to NebulaOS.'
+  ];
+  const logEl = document.getElementById('bootLog');
+  let i=0;
+  const iv = setInterval(()=>{
+    if(i<lines.length){
+      const d=document.createElement('div'); d.textContent=lines[i]; logEl.appendChild(d);
+      i++;
+    } else {
+      clearInterval(iv);
+      setTimeout(()=>{
+        document.getElementById('bootScreen').style.transition='opacity .5s';
+        document.getElementById('bootScreen').style.opacity='0';
+        setTimeout(()=> document.getElementById('bootScreen').remove(), 500);
+      }, 400);
+    }
+  }, 220);
+}
+
+buildDesktopIcons();
+buildStartMenu();
+boot();
+</script>
+</body>
+</html>
