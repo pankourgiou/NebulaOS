@@ -8,12 +8,12 @@
   :root{
     --bg1:#0f1224; --bg2:#1b1f3b; --accent:#7c5cff; --accent2:#00d9c0;
     --glass: rgba(255,255,255,0.07); --glass-border: rgba(255,255,255,0.14);
-    --text:#e9e9f5; --muted:#9aa0c0; --taskbar-h:48px;
+    --text:#e9e9f5; --muted:#9aa0c0; --taskbar-h:60px; --menubar-h:30px;
   }
   *{box-sizing:border-box;}
   html,body{height:100%;margin:0;font-family:'Segoe UI',ui-sans-serif,system-ui,Arial,sans-serif;color:var(--text);overflow:hidden;}
   #desktop{
-    position:fixed;top:0;left:0;right:0;bottom:var(--taskbar-h);
+    position:fixed;top:var(--menubar-h);left:0;right:0;bottom:var(--taskbar-h);
     background: radial-gradient(circle at 20% 20%, #29306b 0%, transparent 45%),
                 radial-gradient(circle at 80% 70%, #1f5a52 0%, transparent 40%),
                 linear-gradient(160deg,var(--bg1),var(--bg2) 60%, #0a0c1a);
@@ -30,32 +30,103 @@
       opacity:.5;}
 
   /* desktop icons */
-  .icons{position:absolute;top:16px;left:16px;display:flex;flex-direction:column;gap:18px;z-index:2;}
+  .icons{display:none;}
   .icon{width:78px;text-align:center;cursor:pointer;padding:6px;border-radius:10px;}
   .icon:hover{background:rgba(255,255,255,0.08);}
   .icon .glyph{font-size:30px;display:block;width:48px;height:48px;line-height:48px;margin:0 auto 4px;border-radius:12px;
       background:var(--glass); border:1px solid var(--glass-border); backdrop-filter:blur(6px);}
   .icon .label{font-size:11.5px;color:var(--text);text-shadow:0 1px 3px #000;}
 
-  /* taskbar */
+  /* top menu bar */
+  #menubar{
+    position:fixed;top:0;left:0;right:0;height:var(--menubar-h);z-index:1500;
+    background:rgba(10,12,26,0.55);backdrop-filter:blur(16px);border-bottom:1px solid var(--glass-border);
+    display:flex;align-items:center;padding:0 14px;font-size:12.5px;color:var(--text);
+  }
+  #menubar .mb-left{display:flex;align-items:center;gap:6px;font-weight:600;letter-spacing:.3px;}
+  #menubar .mb-right{margin-left:auto;display:flex;align-items:center;gap:14px;}
+  .mb-meter{display:flex;align-items:center;gap:6px;cursor:pointer;padding:3px 8px;border-radius:6px;}
+  .mb-meter:hover{background:rgba(255,255,255,0.08);}
+  .mb-meter canvas{display:block;width:46px;height:18px;}
+  .mb-meter .mb-val{font-size:11px;color:var(--muted);min-width:30px;}
+  #mb-clock{color:var(--muted);font-size:12.5px;}
+
+  /* widget panel */
+  #widgetPanel{
+    position:fixed; top:calc(var(--menubar-h) + 10px); right:14px; width:280px;
+    background:rgba(16,18,36,0.82); backdrop-filter:blur(18px);
+    border:1px solid var(--glass-border); border-radius:16px; padding:16px;
+    display:none; z-index:1400; box-shadow:0 25px 60px rgba(0,0,0,0.5);
+  }
+  #widgetPanel h4{margin:0 0 4px;font-size:11.5px;color:var(--muted);font-weight:600;letter-spacing:.6px;text-transform:uppercase;}
+  .widget-card{background:rgba(255,255,255,0.04);border:1px solid var(--glass-border);border-radius:12px;padding:12px;margin-bottom:12px;}
+  .widget-card:last-child{margin-bottom:0;}
+  .widget-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}
+  .widget-top .w-label{font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:6px;}
+  .widget-top .w-val{font-size:18px;font-weight:700;}
+  .widget-card canvas{width:100%;height:64px;display:block;border-radius:6px;}
+  .widget-sub{font-size:10.5px;color:var(--muted);margin-top:6px;display:flex;justify-content:space-between;}
+
+  /* dock */
+  #dockWrap{display:none;}
+  #dock{
+    pointer-events:auto;display:flex;align-items:flex-end;gap:10px;padding:8px 14px 6px;
+    background:rgba(20,22,42,0.55);backdrop-filter:blur(20px);
+    border:1px solid var(--glass-border);border-radius:20px;box-shadow:0 20px 50px rgba(0,0,0,0.45);
+  }
+  .dock-icon{
+    position:relative;width:46px;height:46px;border-radius:12px;background:var(--glass);border:1px solid var(--glass-border);
+    display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;
+    transition:transform .12s ease, width .12s ease, height .12s ease, margin .12s ease;
+    transform-origin:bottom center;
+  }
+  .dock-icon:hover{background:rgba(255,255,255,0.14);}
+  .dock-icon .dot{position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:var(--accent2);display:none;}
+  .dock-icon.running .dot{display:block;}
+  .dock-tip{
+    position:absolute;bottom:60px;left:50%;transform:translateX(-50%);
+    background:rgba(10,12,26,0.9);border:1px solid var(--glass-border);border-radius:6px;
+    padding:3px 9px;font-size:11px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;
+  }
+  .dock-icon:hover .dock-tip{opacity:1;}
+
+  /* taskbar / bottom app bar */
   #taskbar{
     position:fixed;left:0;right:0;bottom:0;height:var(--taskbar-h);
-    background:rgba(12,14,30,0.85); backdrop-filter:blur(14px);
+    background:rgba(10,12,26,0.92); backdrop-filter:blur(22px);
     border-top:1px solid var(--glass-border);
-    display:flex;align-items:center;gap:8px;padding:0 10px;z-index:1000;
+    display:flex;align-items:center;gap:4px;padding:0 14px;z-index:1000;
   }
   #startBtn{
-    display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--accent),#5a3df0);
-    border:none;color:#fff;padding:8px 14px;border-radius:8px;font-weight:600;cursor:pointer;font-size:13px;
+    display:flex;align-items:center;gap:7px;background:linear-gradient(135deg,var(--accent),#5a3df0);
+    border:none;color:#fff;padding:8px 14px;border-radius:10px;font-weight:700;cursor:pointer;font-size:13px;
+    letter-spacing:.3px;box-shadow:0 4px 16px rgba(124,92,255,0.35);
+    transition:filter .15s,box-shadow .15s;flex-shrink:0;
   }
-  #startBtn:hover{filter:brightness(1.1);}
-  #taskApps{display:flex;gap:6px;flex:1;overflow-x:auto;}
+  #startBtn:hover{filter:brightness(1.15);box-shadow:0 6px 20px rgba(124,92,255,0.5);}
+  /* separator */
+  .tb-sep{width:1px;height:32px;background:var(--glass-border);margin:0 6px;flex-shrink:0;}
+  /* app icon buttons in taskbar */
+  .tb-app-btn{
+    position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    width:48px;height:48px;border-radius:12px;border:1px solid transparent;
+    background:var(--glass);cursor:pointer;font-size:20px;
+    transition:background .13s,border-color .13s,transform .1s;flex-shrink:0;gap:2px;
+  }
+  .tb-app-btn:hover{background:rgba(255,255,255,0.13);border-color:var(--glass-border);transform:translateY(-2px);}
+  .tb-app-btn.running::after{content:"";position:absolute;bottom:3px;left:50%;transform:translateX(-50%);
+    width:4px;height:4px;border-radius:50%;background:var(--accent2);}
+  .tb-app-btn .tb-label{font-size:9px;color:var(--muted);letter-spacing:.2px;line-height:1;}
+  .tb-app-btn:hover .tb-label{color:var(--text);}
+  /* running windows list */
+  #taskApps{display:flex;gap:4px;flex:1;overflow-x:auto;padding-left:4px;}
   .taskApp{
     background:var(--glass);border:1px solid var(--glass-border);border-radius:8px;color:var(--text);
-    padding:6px 12px;font-size:12.5px;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;
+    padding:5px 10px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap;
+    max-width:140px;
   }
-  .taskApp.active{background:rgba(124,92,255,0.35);border-color:var(--accent);}
-  #clock{margin-left:auto;color:var(--muted);font-size:13px;padding:0 10px;min-width:130px;text-align:right;}
+  .taskApp.active{background:rgba(124,92,255,0.3);border-color:var(--accent);}
+  #clock{margin-left:auto;color:var(--muted);font-size:12px;padding:0 6px;min-width:110px;text-align:right;flex-shrink:0;}
 
   /* start menu */
   #startMenu{
@@ -144,16 +215,196 @@
   ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.18);border-radius:6px;}
   ::-webkit-scrollbar-track{background:transparent;}
 
-  #bootScreen{position:fixed;inset:0;background:#05060f;color:#9be8c4;z-index:5000;display:flex;flex-direction:column;
+  #bootScreen{position:fixed;inset:0;background:#05060f;color:#9be8c4;z-index:5000;display:none;flex-direction:column;
       align-items:center;justify-content:center;font-family:Consolas,monospace;}
   #bootScreen .logo{font-size:42px;font-weight:700;letter-spacing:2px;margin-bottom:18px;
       background:linear-gradient(90deg,#7c5cff,#00d9c0);-webkit-background-clip:text;background-clip:text;color:transparent;}
   #bootLog{font-size:12.5px;width:420px;height:140px;overflow:hidden;color:#7fdca0;}
   .spinner{width:26px;height:26px;border:3px solid #233;border-top-color:#7c5cff;border-radius:50%;animation:spin 0.8s linear infinite;margin-top:16px;}
   @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* login / setup screens */
+  #authScreen{position:fixed;inset:0;z-index:6000;display:none;align-items:center;justify-content:center;
+      background:radial-gradient(circle at 20% 20%, #29306b 0%, transparent 45%),
+                 radial-gradient(circle at 80% 70%, #1f5a52 0%, transparent 40%),
+                 linear-gradient(160deg,var(--bg1),var(--bg2) 60%, #0a0c1a);
+      font-family:'Segoe UI',ui-sans-serif,system-ui,Arial,sans-serif;}
+  #authCard{width:340px;background:rgba(18,20,40,0.85);backdrop-filter:blur(16px);border:1px solid var(--glass-border);
+      border-radius:18px;padding:32px 28px;box-shadow:0 25px 70px rgba(0,0,0,0.55);text-align:center;}
+  #authCard .avatar{width:72px;height:72px;border-radius:50%;margin:0 auto 14px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+      display:flex;align-items:center;justify-content:center;font-size:32px;}
+  #authCard h2{margin:0 0 4px;font-size:18px;}
+  #authCard .sub{color:var(--muted);font-size:12.5px;margin-bottom:18px;}
+  #authCard input{width:100%;background:rgba(0,0,0,0.3);border:1px solid var(--glass-border);border-radius:8px;
+      padding:11px 14px;color:var(--text);font-size:14px;outline:none;box-sizing:border-box;margin-bottom:10px;text-align:center;
+      letter-spacing:2px;}
+  #authCard input:focus{border-color:var(--accent);}
+  #authCard button.primary{width:100%;background:linear-gradient(135deg,var(--accent),#5a3df0);border:none;color:#fff;
+      padding:11px;border-radius:8px;font-weight:600;cursor:pointer;font-size:13.5px;margin-top:4px;}
+  #authCard button.primary:hover{filter:brightness(1.1);}
+  #authCard .authErr{color:#ff7b7b;font-size:12px;min-height:16px;margin-top:8px;}
+  #authCard .authHint{color:var(--muted);font-size:11px;margin-top:14px;line-height:1.5;}
+  #authCard .authLink{color:var(--accent2);cursor:pointer;text-decoration:underline;}
+  #authCard .strengthBar{height:5px;border-radius:4px;background:rgba(255,255,255,0.08);overflow:hidden;margin:-4px 0 12px;}
+  #authCard .strengthBar div{height:100%;width:0%;transition:width .2s;}
+
+  /* ── GEOMETRY SOLVER APP STYLES ─────────────────────────── */
+  .geo-wrap{flex:1;display:flex;overflow:hidden;background:#0D1B2A;}
+  .geo-toolbar{width:56px;background:#112233;border-right:1px solid #1e3d5c;display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:3px;flex-shrink:0;}
+  .geo-tool-btn{width:38px;height:38px;border-radius:7px;border:1px solid transparent;background:transparent;color:#7a9bb5;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .14s;font-size:1.1rem;}
+  .geo-tool-btn:hover{background:#162b44;color:#F0F4F8;}
+  .geo-tool-btn.active{background:rgba(0,212,180,0.12);border-color:#00D4B4;color:#00D4B4;}
+  .geo-divider{width:28px;height:1px;background:#1e3d5c;margin:3px 0;}
+  .geo-canvas-area{flex:1;display:flex;flex-direction:column;position:relative;overflow:hidden;}
+  .geo-canvas-bar{display:flex;align-items:center;gap:10px;padding:6px 12px;background:#112233;border-bottom:1px solid #1e3d5c;flex-shrink:0;font-size:11.5px;color:#7a9bb5;font-weight:600;letter-spacing:.04em;}
+  .geo-swatch{width:18px;height:18px;border-radius:4px;border:2px solid #1e3d5c;cursor:pointer;transition:border-color .13s;}
+  .geo-swatch.sel{border-color:#00D4B4;}
+  .geo-canvas-wrap{flex:1;position:relative;overflow:hidden;}
+  #geoCanvas{display:block;cursor:crosshair;}
+  .geo-coords{position:absolute;bottom:8px;left:12px;font-size:11px;color:#7a9bb5;pointer-events:none;font-family:'Space Grotesk',sans-serif;}
+  .geo-side{width:260px;background:#112233;border-left:1px solid #1e3d5c;display:flex;flex-direction:column;flex-shrink:0;}
+  .geo-tabs{display:flex;border-bottom:1px solid #1e3d5c;flex-shrink:0;}
+  .geo-tab{flex:1;padding:9px 4px;font-size:10.5px;font-weight:600;letter-spacing:.05em;text-align:center;color:#7a9bb5;cursor:pointer;border-bottom:2px solid transparent;transition:all .14s;}
+  .geo-tab.active{color:#00D4B4;border-bottom-color:#00D4B4;}
+  .geo-panel{flex:1;overflow-y:auto;padding:12px;}
+  .geo-panel::-webkit-scrollbar{width:4px;}
+  .geo-panel::-webkit-scrollbar-thumb{background:#1e3d5c;border-radius:2px;}
+  .geo-shape-item{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:7px;background:#162b44;margin-bottom:5px;cursor:pointer;border:1px solid transparent;transition:border-color .13s;font-size:12px;}
+  .geo-shape-item:hover{border-color:#1e3d5c;}
+  .geo-shape-item.sel{border-color:#00D4B4;}
+  .geo-shape-del{background:none;border:none;color:#7a9bb5;cursor:pointer;font-size:.85rem;padding:2px 5px;border-radius:4px;}
+  .geo-shape-del:hover{color:#ff6b6b;background:rgba(255,107,107,0.1);}
+  .geo-measure-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #1e3d5c;font-size:11.5px;}
+  .geo-measure-row:last-child{border-bottom:none;}
+  .geo-mkey{color:#7a9bb5;}
+  .geo-mval{color:#00D4B4;font-weight:600;font-family:'Space Grotesk',sans-serif;}
+  .geo-hint-card{background:#162b44;border:1px solid #1e3d5c;border-radius:8px;padding:10px 12px;margin-bottom:8px;animation:fadeIn .25s ease;}
+  .geo-hint-card.ai-card{border-color:rgba(0,212,180,0.25);}
+  .geo-hint-card.user-card{border-color:rgba(255,179,71,0.2);background:rgba(255,179,71,0.05);}
+  .geo-hint-tag{font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;}
+  .geo-hint-tag.ai{color:#00D4B4;}
+  .geo-hint-tag.user{color:#FFB347;}
+  .geo-hint-text{font-size:11.5px;line-height:1.5;color:#F0F4F8;}
+  .geo-hint-formula{background:rgba(0,212,180,0.08);border:1px solid rgba(0,212,180,0.15);border-radius:5px;padding:4px 8px;margin-top:5px;font-size:11px;color:#00D4B4;white-space:pre-wrap;font-family:'Space Grotesk',monospace;}
+  .geo-thinking{display:flex;gap:4px;padding:3px 0;}
+  .geo-thinking span{width:5px;height:5px;background:#00D4B4;border-radius:50%;animation:bounce 1.1s infinite;}
+  .geo-thinking span:nth-child(2){animation-delay:.18s;}
+  .geo-thinking span:nth-child(3){animation-delay:.36s;}
+  .geo-ask-area{padding:10px;border-top:1px solid #1e3d5c;flex-shrink:0;display:flex;gap:6px;}
+  .geo-ask-area textarea{flex:1;background:#162b44;border:1px solid #1e3d5c;border-radius:7px;color:#F0F4F8;padding:7px 10px;font-size:11.5px;outline:none;resize:none;height:52px;font-family:inherit;}
+  .geo-ask-area textarea:focus{border-color:#00D4B4;}
+  .geo-ask-btn{background:linear-gradient(135deg,#00D4B4,#009e87);border:none;color:#0D1B2A;border-radius:7px;padding:0 12px;font-weight:700;font-size:11.5px;cursor:pointer;height:52px;flex-shrink:0;}
+  .geo-status{font-size:11px;color:#7a9bb5;padding:0 12px;flex:1;}
+  .geo-clear-btn{background:transparent;border:1px solid #1e3d5c;color:#7a9bb5;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;}
+  .geo-clear-btn:hover{border-color:#ff6b6b;color:#ff6b6b;}
+
+  /* ── MUSIC PLAYER STYLES ─────────────────────────────────── */
+  .music-player{flex:1;display:flex;flex-direction:column;background:linear-gradient(160deg,#0f1224,#1a1040 60%,#0a1a30);overflow:hidden;}
+  .music-header{padding:16px 18px 10px;border-bottom:1px solid var(--glass-border);}
+  .music-header h2{font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px;}
+  .music-header p{font-size:11px;color:var(--muted);}
+  .music-main{display:flex;flex:1;overflow:hidden;}
+  .music-left{flex:1;display:flex;flex-direction:column;padding:16px;gap:16px;min-width:0;}
+  .music-art{width:120px;height:120px;border-radius:14px;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:52px;flex-shrink:0;
+    background:linear-gradient(135deg,#2a1a5e,#1a3a5e);box-shadow:0 12px 40px rgba(0,0,0,.5);
+    transition:transform .3s;position:relative;overflow:hidden;}
+  .music-art.playing{animation:artSpin 8s linear infinite;}
+  @keyframes artSpin{from{box-shadow:0 12px 40px rgba(124,92,255,.3);}to{box-shadow:0 12px 40px rgba(0,217,192,.3);}}
+  .music-info{text-align:center;}
+  .music-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .music-artist{font-size:11.5px;color:var(--muted);}
+  .music-progress-wrap{display:flex;flex-direction:column;gap:6px;}
+  .music-time{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);font-family:'Space Grotesk',monospace;}
+  .music-progress{width:100%;height:5px;border-radius:3px;background:var(--glass);cursor:pointer;appearance:none;-webkit-appearance:none;outline:none;}
+  .music-progress::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--accent2);cursor:pointer;box-shadow:0 0 6px rgba(0,217,192,.6);}
+  .music-progress::-webkit-slider-runnable-track{background:transparent;}
+  .music-controls{display:flex;align-items:center;justify-content:center;gap:10px;}
+  .mc-btn{background:transparent;border:none;color:var(--muted);font-size:16px;cursor:pointer;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:color .12s,background .12s;}
+  .mc-btn:hover{color:var(--text);background:var(--glass);}
+  .mc-btn.primary{background:linear-gradient(135deg,var(--accent),#5a3df0);color:#fff;width:44px;height:44px;font-size:18px;box-shadow:0 6px 20px rgba(124,92,255,.4);}
+  .mc-btn.primary:hover{filter:brightness(1.15);}
+  .mc-btn.active{color:var(--accent2);}
+  .music-vol{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);}
+  .music-vol input{flex:1;height:4px;appearance:none;-webkit-appearance:none;background:var(--glass);border-radius:2px;outline:none;cursor:pointer;}
+  .music-vol input::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--muted);cursor:pointer;}
+  .music-playlist{width:200px;border-left:1px solid var(--glass-border);display:flex;flex-direction:column;overflow:hidden;}
+  .music-playlist h4{padding:12px 14px 8px;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--glass-border);flex-shrink:0;}
+  .playlist-items{flex:1;overflow-y:auto;}
+  .pl-item{display:flex;align-items:center;gap:8px;padding:8px 14px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04);transition:background .12s;}
+  .pl-item:hover{background:var(--glass);}
+  .pl-item.active{background:rgba(124,92,255,.18);border-left:2px solid var(--accent);}
+  .pl-num{font-size:10px;color:var(--muted);min-width:16px;font-family:'Space Grotesk',monospace;}
+  .pl-info{flex:1;min-width:0;}
+  .pl-title{font-size:11.5px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .pl-artist{font-size:10px;color:var(--muted);}
+  .pl-dur{font-size:10px;color:var(--muted);font-family:'Space Grotesk',monospace;flex-shrink:0;}
+
+  /* ── VIDEO PLAYER STYLES ─────────────────────────────────── */
+  .video-player{flex:1;display:flex;flex-direction:column;background:#000;overflow:hidden;}
+  .video-viewport{flex:1;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;}
+  .video-art{width:100%;height:100%;object-fit:cover;display:none;}
+  .video-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--muted);font-size:13px;}
+  .video-placeholder .vi{font-size:56px;opacity:.3;}
+  .video-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35);opacity:0;transition:opacity .2s;}
+  .video-viewport:hover .video-overlay{opacity:1;}
+  .video-big-play{font-size:52px;color:#fff;filter:drop-shadow(0 4px 16px rgba(0,0,0,.6));cursor:pointer;}
+  .video-bar{background:rgba(10,12,26,.92);backdrop-filter:blur(10px);border-top:1px solid var(--glass-border);padding:10px 14px;display:flex;flex-direction:column;gap:8px;}
+  .video-prog-wrap{display:flex;align-items:center;gap:8px;font-size:10.5px;color:var(--muted);}
+  .video-progress{flex:1;height:5px;appearance:none;-webkit-appearance:none;background:rgba(255,255,255,.15);border-radius:3px;outline:none;cursor:pointer;}
+  .video-progress::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--accent2);cursor:pointer;}
+  .video-controls-row{display:flex;align-items:center;gap:8px;}
+  .vc-btn{background:transparent;border:none;color:var(--muted);font-size:15px;cursor:pointer;padding:4px 7px;border-radius:6px;transition:color .12s,background .12s;}
+  .vc-btn:hover{color:var(--text);background:var(--glass);}
+  .vc-btn.primary{color:#fff;background:linear-gradient(135deg,var(--accent),#5a3df0);padding:5px 10px;}
+  .video-title{flex:1;font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .vc-vol{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
+  .vc-vol input{width:60px;height:3px;appearance:none;-webkit-appearance:none;background:var(--glass);border-radius:2px;cursor:pointer;}
+  .vc-vol input::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;border-radius:50%;background:var(--muted);}
+  .video-playlist{display:flex;flex-direction:column;background:rgba(10,12,26,.7);border-top:1px solid var(--glass-border);max-height:140px;overflow-y:auto;}
+  .vp-item{display:flex;align-items:center;gap:10px;padding:7px 14px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.03);transition:background .12s;font-size:12px;}
+  .vp-item:hover{background:var(--glass);}
+  .vp-item.active{background:rgba(124,92,255,.2);border-left:2px solid var(--accent);}
+  .vp-thumb{width:40px;height:28px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:20px;background:rgba(255,255,255,.06);flex-shrink:0;}
+  .vp-info{flex:1;min-width:0;}
+  .vp-title{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);}
+  .vp-meta{font-size:10.5px;color:var(--muted);}
+
 </style>
 </head>
 <body>
+
+<div id="authScreen">
+  <div id="authCard"></div>
+</div>
+
+<div id="menubar">
+  <div class="mb-left">⟡ NebulaOS</div>
+  <div class="mb-right">
+    <div class="mb-meter" id="mb-cpu" title="CPU usage — click for details">
+      <canvas width="46" height="18"></canvas>
+      <span class="mb-val">0%</span>
+    </div>
+    <div class="mb-meter" id="mb-gpu" title="GPU usage — click for details">
+      <canvas width="46" height="18"></canvas>
+      <span class="mb-val">0%</span>
+    </div>
+    <span id="mb-clock">--:--</span>
+  </div>
+</div>
+
+<div id="widgetPanel">
+  <h4>Activity</h4>
+  <div class="widget-card">
+    <div class="widget-top"><span class="w-label">⚙️ CPU</span><span class="w-val" id="w-cpu-val">0%</span></div>
+    <canvas id="w-cpu-canvas" width="500" height="120"></canvas>
+    <div class="widget-sub"><span id="w-cpu-procs">0 processes</span><span id="w-cpu-peak">peak 0%</span></div>
+  </div>
+  <div class="widget-card">
+    <div class="widget-top"><span class="w-label">🎮 GPU</span><span class="w-val" id="w-gpu-val">0%</span></div>
+    <canvas id="w-gpu-canvas" width="500" height="120"></canvas>
+    <div class="widget-sub"><span id="w-gpu-procs">compositor</span><span id="w-gpu-peak">peak 0%</span></div>
+  </div>
+</div>
 
 <div id="bootScreen">
   <div class="logo">⟡ NebulaOS</div>
@@ -166,8 +417,13 @@
   <div class="icons" id="iconsContainer"></div>
 </div>
 
+<div id="dockWrap"><div id="dock"></div></div>
+
 <div id="taskbar">
   <button id="startBtn">⟡ Start</button>
+  <div class="tb-sep"></div>
+  <div id="tbAppBtns"></div>
+  <div class="tb-sep"></div>
   <div id="taskApps"></div>
   <div id="clock">--:--:--</div>
 </div>
@@ -175,6 +431,7 @@
 <div id="startMenu">
   <h3>Applications</h3>
   <div id="startApps"></div>
+  <div class="startItem" id="lockItem"><span class="g">🔒</span><span>Lock NebulaOS</span></div>
   <div id="startFooter"><span>NebulaOS v1.0</span><span id="startClock"></span></div>
 </div>
 
@@ -461,12 +718,22 @@ function launchTerminal(){
     sudo <cmd>           simulate elevated command
     reboot               reload NebulaOS
 
+  Security toolkit:
+    pwcheck <pw>        analyze password strength
+    genpass [len]       generate a strong random password
+    hash <algo> <text>  sha256/sha1/sha512 digest of text
+    secscan             scan virtual filesystem for security issues
+    firewall <on|off>   toggle simulated firewall
+    netstat              show simulated network connections
+    lock                 lock the session (requires password to unlock)
+    open security        launch full Security Toolkit app
+
   Misc:
     echo <text>         print text
     whoami / date        
     history              command history
     man <cmd>            manual page (stub)
-    open <app>            launch app (browser, files, monitor, about, terminal)
+    open <app>            launch app (browser, files, monitor, about, terminal, security)
     clear / exit`);
         },
         pwd(){ printText(pathStr()); },
@@ -652,10 +919,63 @@ function launchTerminal(){
         exit(){ print('<span class="hint">Closing terminal...</span>'); setTimeout(()=> wbody.closest('.window')?.querySelector('.winbtn.close')?.click(), 300); },
         open(args){
           const app = (args[0]||'').toLowerCase();
-          const map = {browser:launchBrowser, files:launchFiles, monitor:launchMonitor, about:launchAbout, terminal:launchTerminal, settings:launchMonitor};
+          const map = {browser:launchBrowser, files:launchFiles, monitor:launchMonitor, about:launchAbout, terminal:launchTerminal, settings:launchMonitor, security:launchSecurity};
           if(map[app]){ map[app](); print(`<span class="ok">Launching ${app}...</span>`); }
-          else printText(`open: unknown app '${args[0]||''}'. Try: browser, files, monitor, about`);
-        }
+          else printText(`open: unknown app '${args[0]||''}'. Try: browser, files, monitor, about, security`);
+        },
+        pwcheck(args){
+          if(!args[0]){ printText('usage: pwcheck <password>'); return; }
+          const r = analyzePassword(args.join(' '));
+          print(`<span class="hint">Score:</span> ${r.label} <span class="hint">(${r.score}/4)</span>
+Entropy: ~${r.entropy} bits   Est. crack time (offline, fast hw): ${r.crackTime}
+${r.feedback.map(f=>'- '+f).join('\n')}`);
+        },
+        genpass(args){
+          const len = Math.max(8, Math.min(64, parseInt(args[0])||16));
+          const pw = generatePassword(len);
+          print(`<span class="ok">${pw}</span>`);
+        },
+        hash(args){
+          if(args.length<1){ printText('usage: hash <sha256|sha1|sha512> <text...>'); return; }
+          let algo = args[0].toLowerCase(); let text;
+          const algMap = {sha256:'SHA-256', sha1:'SHA-1', sha512:'SHA-512'};
+          if(algMap[algo]){ text = args.slice(1).join(' '); }
+          else { algo='sha256'; text = args.join(' '); }
+          if(!text){ printText('usage: hash <sha256|sha1|sha512> <text...>'); return; }
+          crypto.subtle.digest(algMap[algo], new TextEncoder().encode(text)).then(buf=>{
+            const hex = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+            print(`<span class="hint">${algMap[algo]}:</span> ${hex}`);
+          });
+        },
+        secscan(){
+          print('<span class="hint">Running NebulaShield filesystem audit...</span>');
+          setTimeout(()=>{
+            const findings = scanFilesystem(Kernel.FS, '');
+            if(findings.length===0){
+              print('<span class="ok">✓ No issues found. Filesystem looks clean.</span>');
+            } else {
+              print(`<span class="err">Found ${findings.length} issue(s):</span>`);
+              findings.forEach(f=> print(`  <span class="err">⚠</span> ${f}`));
+            }
+            print('<span class="hint">Tip: avoid storing plaintext secrets/passwords in files. Use generated passwords (genpass) and never reuse them.</span>');
+          }, 500);
+        },
+        clamscan(){ commands.secscan(); },
+        firewall(args){
+          const sub = (args[0]||'status').toLowerCase();
+          if(sub==='on'){ window.__nebFirewall=true; print('<span class="ok">Firewall ENABLED (simulated).</span>'); }
+          else if(sub==='off'){ window.__nebFirewall=false; print('<span class="err">Firewall DISABLED (simulated).</span>'); }
+          else printText(`Firewall is currently ${window.__nebFirewall===false?'OFF':'ON'} (simulated).`);
+        },
+        netstat(){
+          print(`<span class="hint">Proto  Local Address        State        Process</span>`);
+          [['tcp','127.0.0.1:443','ESTABLISHED','nebula-browser'],
+           ['tcp','127.0.0.1:22','LISTEN','sshd-sim'],
+           ['udp','0.0.0.0:68','LISTEN','dhclient-sim']].forEach(r=>{
+            printText(`${r[0].padEnd(7)}${r[1].padEnd(21)}${r[2].padEnd(13)}${r[3]}`);
+          });
+        },
+        lock(){ print('<span class="hint">Locking session...</span>'); setTimeout(()=>Auth.lock(), 200); }
       };
 
       input.addEventListener('keydown', (e)=>{
@@ -868,24 +1188,1122 @@ function launchAbout(){
   });
 }
 
+/* ---------------------------- SECURITY HELPERS ---------------------------- */
+const COMMON_PASSWORDS = ['123456','password','123456789','12345678','12345','qwerty','abc123','111111',
+  '1234567','password1','iloveyou','admin','letme in','welcome','monkey','dragon','football','login','master','sunshine'];
+
+function analyzePassword(pw){
+  const feedback = [];
+  let score = 0;
+  const len = pw.length;
+  const lower = pw.toLowerCase();
+
+  const hasLower = /[a-z]/.test(pw);
+  const hasUpper = /[A-Z]/.test(pw);
+  const hasDigit = /[0-9]/.test(pw);
+  const hasSymbol = /[^a-zA-Z0-9]/.test(pw);
+  const variety = [hasLower,hasUpper,hasDigit,hasSymbol].filter(Boolean).length;
+
+  let pool = 0;
+  if(hasLower) pool += 26;
+  if(hasUpper) pool += 26;
+  if(hasDigit) pool += 10;
+  if(hasSymbol) pool += 32;
+  const entropy = pool>0 ? Math.round(len * Math.log2(pool)) : 0;
+
+  const isCommon = COMMON_PASSWORDS.includes(lower);
+  const isSequential = /^(?:0123|1234|2345|3456|4567|5678|6789|abcd|qwer|asdf)/i.test(pw);
+  const isRepeated = /^(.)\1+$/.test(pw);
+
+  if(len < 8) feedback.push('Too short — use at least 12 characters.');
+  else if(len < 12) feedback.push('Consider using 12+ characters for better security.');
+  else feedback.push('Good length.');
+
+  if(variety < 3) feedback.push('Mix uppercase, lowercase, numbers, and symbols.');
+  else feedback.push('Good character variety.');
+
+  if(isCommon) feedback.push('This is one of the most commonly leaked passwords — never use it.');
+  if(isSequential) feedback.push('Avoid sequential patterns (1234, abcd, qwer...).');
+  if(isRepeated) feedback.push('Avoid repeated single characters.');
+  if(/^[a-zA-Z]+$/.test(pw) && len<16) feedback.push('All-letters passwords are weaker — add numbers/symbols.');
+
+  if(isCommon || isSequential || isRepeated) score = 0;
+  else {
+    score = 1;
+    if(len>=12) score++;
+    if(variety>=3) score++;
+    if(len>=16 && variety>=4) score++;
+    score = Math.min(score,4);
+  }
+
+  const labels = ['Very Weak','Weak','Fair','Strong','Very Strong'];
+  const label = labels[score];
+
+  // rough offline fast-hardware guess rate ~10^10 guesses/sec for naive hash
+  const guesses = Math.pow(2, entropy);
+  const seconds = guesses / 1e10;
+  const crackTime = humanizeSeconds(isCommon ? 0.0001 : seconds);
+
+  return {score, label, entropy, crackTime, feedback};
+}
+
+function humanizeSeconds(s){
+  if(s < 1) return 'instantly';
+  const units = [[60,'seconds'],[60,'minutes'],[24,'hours'],[365,'days'],[100,'years'],[Infinity,'centuries']];
+  let val = s, unitName='seconds';
+  for(const [div,name] of units){
+    if(val < div){ unitName = name; break; }
+    val /= div; unitName = name;
+  }
+  return `~${val<1?val.toFixed(2):Math.round(val)} ${unitName}`;
+}
+
+function generatePassword(len=16){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*()-_=+';
+  const arr = new Uint32Array(len);
+  crypto.getRandomValues(arr);
+  return Array.from(arr, n => chars[n % chars.length]).join('');
+}
+
+// Naive simulated audit of the virtual filesystem — looks for plaintext-secret
+// patterns in file contents, purely for in-browser educational demonstration.
+function scanFilesystem(node, path){
+  const findings = [];
+  const secretPattern = /(password|passwd|secret|api[_-]?key|token)\s*[:=]\s*\S+/i;
+  Object.values(node.children||{}).forEach(c=>{
+    const p = path + '/' + c.name;
+    if(c.type==='file'){
+      if(secretPattern.test(c.content||'')){
+        findings.push(`${p} — possible plaintext credential found in file contents.`);
+      }
+      if(c.content && COMMON_PASSWORDS.some(pw=>c.content.toLowerCase().includes(pw))){
+        findings.push(`${p} — contains a known weak/common password string.`);
+      }
+    } else if(c.type==='dir'){
+      findings.push(...scanFilesystem(c, p));
+    }
+  });
+  return findings;
+}
+
+/* ---------------------------- APP: SECURITY TOOLKIT ---------------------------- */
+function launchSecurity(){
+  const pid = Kernel.spawn('nebula-shield', {cpu:1.8, mem:34});
+  WM.createWindow({title:'Security Toolkit', icon:'🛡️', width:560, height:520, pid,
+    body:(wbody)=>{
+      wbody.innerHTML = `
+        <div style="display:flex;border-bottom:1px solid var(--glass-border);">
+          <button class="sec-tab active" data-t="pw">Password</button>
+          <button class="sec-tab" data-t="hash">Hash</button>
+          <button class="sec-tab" data-t="scan">Scan</button>
+          <button class="sec-tab" data-t="net">Network</button>
+        </div>
+        <div class="panel" id="sec-body" style="flex:1;"></div>
+      `;
+      const style = document.createElement('style');
+      style.textContent = `.sec-tab{flex:1;background:transparent;border:none;color:var(--muted);padding:10px;cursor:pointer;font-size:12.5px;font-weight:600;border-bottom:2px solid transparent;}
+        .sec-tab.active{color:var(--text);border-bottom-color:var(--accent);}
+        .sec-input{width:100%;background:rgba(0,0,0,0.3);border:1px solid var(--glass-border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;margin:8px 0;box-sizing:border-box;}
+        .sec-btn{background:linear-gradient(135deg,var(--accent),#5a3df0);border:none;color:#fff;padding:9px 16px;border-radius:8px;font-weight:600;cursor:pointer;font-size:12.5px;}
+        .sec-btn:hover{filter:brightness(1.1);}
+        .sec-meter{height:8px;border-radius:5px;background:rgba(255,255,255,0.08);overflow:hidden;margin:8px 0;}
+        .sec-meter-fill{height:100%;transition:width .3s;}
+        .sec-fb{font-size:12.5px;color:var(--muted);margin:3px 0;}
+        .sec-mono{font-family:Consolas,monospace;font-size:12px;word-break:break-all;background:rgba(0,0,0,0.3);padding:8px 10px;border-radius:6px;margin-top:6px;}`;
+      wbody.appendChild(style);
+      const body = wbody.querySelector('#sec-body');
+      const tabs = wbody.querySelectorAll('.sec-tab');
+
+      function renderPw(){
+        body.innerHTML = `
+          <h2>🔑 Password Strength Analyzer</h2>
+          <p style="color:var(--muted);font-size:12.5px;">Runs entirely in your browser — nothing is sent anywhere.</p>
+          <input class="sec-input" id="pw-in" type="text" placeholder="Type a password to analyze..." autocomplete="off"/>
+          <div class="sec-meter"><div class="sec-meter-fill" id="pw-meter" style="width:0%;background:#ff605c;"></div></div>
+          <div id="pw-label" style="font-weight:600;"></div>
+          <div id="pw-fb"></div>
+          <div style="margin-top:14px;display:flex;gap:8px;align-items:center;">
+            <button class="sec-btn" id="pw-gen">Generate strong password</button>
+          </div>
+          <div class="sec-mono" id="pw-gen-out" style="display:none;"></div>
+        `;
+        const input = body.querySelector('#pw-in');
+        const meter = body.querySelector('#pw-meter');
+        const label = body.querySelector('#pw-label');
+        const fb = body.querySelector('#pw-fb');
+        const colors = ['#ff605c','#ff9a44','#ffd24a','#8effa1','#00d9c0'];
+        input.addEventListener('input', ()=>{
+          if(!input.value){ meter.style.width='0%'; label.textContent=''; fb.innerHTML=''; return; }
+          const r = analyzePassword(input.value);
+          meter.style.width = ((r.score+1)/5*100)+'%';
+          meter.style.background = colors[r.score];
+          label.innerHTML = `${r.label} <span style="color:var(--muted);font-weight:400;">— entropy ~${r.entropy} bits, crack time ${r.crackTime}</span>`;
+          fb.innerHTML = r.feedback.map(f=>`<div class="sec-fb">• ${f}</div>`).join('');
+        });
+        body.querySelector('#pw-gen').onclick = ()=>{
+          const out = body.querySelector('#pw-gen-out');
+          out.style.display='block';
+          out.textContent = generatePassword(18);
+        };
+      }
+
+      function renderHash(){
+        body.innerHTML = `
+          <h2>🧮 Hash Generator</h2>
+          <p style="color:var(--muted);font-size:12.5px;">Generate SHA-1 / SHA-256 / SHA-512 digests using your browser's built-in crypto.</p>
+          <input class="sec-input" id="hash-in" type="text" placeholder="Text to hash..." autocomplete="off"/>
+          <div style="display:flex;gap:8px;margin-bottom:8px;">
+            <select id="hash-algo" class="sec-input" style="width:auto;">
+              <option value="SHA-256">SHA-256</option>
+              <option value="SHA-1">SHA-1</option>
+              <option value="SHA-512">SHA-512</option>
+            </select>
+            <button class="sec-btn" id="hash-go">Generate</button>
+          </div>
+          <div class="sec-mono" id="hash-out">—</div>
+        `;
+        const go = ()=>{
+          const text = body.querySelector('#hash-in').value;
+          const algo = body.querySelector('#hash-algo').value;
+          if(!text){ body.querySelector('#hash-out').textContent='—'; return; }
+          crypto.subtle.digest(algo, new TextEncoder().encode(text)).then(buf=>{
+            const hex = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+            body.querySelector('#hash-out').textContent = hex;
+          });
+        };
+        body.querySelector('#hash-go').onclick = go;
+        body.querySelector('#hash-in').addEventListener('input', go);
+        body.querySelector('#hash-algo').addEventListener('change', go);
+      }
+
+      function renderScan(){
+        body.innerHTML = `
+          <h2>🛰️ Filesystem Security Scan</h2>
+          <p style="color:var(--muted);font-size:12.5px;">Audits NebulaOS's virtual filesystem for plaintext secrets and weak password strings — a simulated demo of how leak-scanners work.</p>
+          <button class="sec-btn" id="scan-go">Run scan</button>
+          <div id="scan-out" style="margin-top:14px;"></div>
+        `;
+        body.querySelector('#scan-go').onclick = ()=>{
+          const out = body.querySelector('#scan-out');
+          out.innerHTML = `<div class="sec-fb">Scanning...</div>`;
+          setTimeout(()=>{
+            const findings = scanFilesystem(Kernel.FS, '');
+            if(findings.length===0){
+              out.innerHTML = `<div style="color:#8effa1;">✓ No issues found. Filesystem looks clean.</div>`;
+            } else {
+              out.innerHTML = findings.map(f=>`<div style="color:#ff7b7b;margin:4px 0;">⚠ ${f}</div>`).join('')
+                + `<div class="sec-fb" style="margin-top:8px;">Tip: never store plaintext passwords/keys in files. Use a password manager and generated, unique passwords.</div>`;
+            }
+          }, 600);
+        };
+      }
+
+      function renderNet(){
+        const fwOn = window.__nebFirewall!==false;
+        body.innerHTML = `
+          <h2>📡 Network Monitor (simulated)</h2>
+          <div class="kv">
+            <b>Firewall</b><span style="color:${fwOn?'#8effa1':'#ff7b7b'};">${fwOn?'Enabled':'Disabled'}</span>
+          </div>
+          <button class="sec-btn" id="fw-toggle">${fwOn?'Disable':'Enable'} Firewall</button>
+          <h3 style="margin-top:18px;color:var(--accent2);font-size:13px;">Active Connections</h3>
+          <table class="proc"><tr><th>Proto</th><th>Local Address</th><th>State</th><th>Process</th></tr>
+            <tr><td>tcp</td><td>127.0.0.1:443</td><td>ESTABLISHED</td><td>nebula-browser</td></tr>
+            <tr><td>tcp</td><td>127.0.0.1:22</td><td>LISTEN</td><td>sshd-sim</td></tr>
+            <tr><td>udp</td><td>0.0.0.0:68</td><td>LISTEN</td><td>dhclient-sim</td></tr>
+          </table>
+          <p style="color:var(--muted);font-size:11.5px;margin-top:14px;">This panel is illustrative only — NebulaOS has no real network stack of its own beyond the embedded browser iframe.</p>
+        `;
+        body.querySelector('#fw-toggle').onclick = ()=>{
+          window.__nebFirewall = !fwOn;
+          renderNet();
+        };
+      }
+
+      const renders = {pw:renderPw, hash:renderHash, scan:renderScan, net:renderNet};
+      tabs.forEach(t=>{
+        t.addEventListener('click', ()=>{
+          tabs.forEach(x=>x.classList.remove('active'));
+          t.classList.add('active');
+          renders[t.dataset.t]();
+        });
+      });
+      renderPw();
+    }
+  });
+}
+
 /* ---------------------------- DESKTOP / START MENU ---------------------------- */
+
+/* ========================= APP: GEOMETRY SOLVER ========================= */
+function launchGeometry(){
+  const pid = Kernel.spawn('nebula-geometry', {cpu:2.5, mem:45});
+  WM.createWindow({title:'Geometry Solver', icon:'📐', width:920, height:600, pid,
+    body:(wbody)=>{
+      wbody.style.overflow='hidden';
+      // CSS already injected globally; just build the DOM
+      wbody.innerHTML = `
+<div class="geo-wrap">
+  <!-- LEFT TOOLBAR -->
+  <div class="geo-toolbar">
+    <button class="geo-tool-btn active" id="geoTool-select" onclick="geoSetTool('select')" title="Select">⊹</button>
+    <div class="geo-divider"></div>
+    <button class="geo-tool-btn" id="geoTool-line" onclick="geoSetTool('line')" title="Line">╱</button>
+    <button class="geo-tool-btn" id="geoTool-rect" onclick="geoSetTool('rect')" title="Rectangle">▭</button>
+    <button class="geo-tool-btn" id="geoTool-circle" onclick="geoSetTool('circle')" title="Circle">○</button>
+    <button class="geo-tool-btn" id="geoTool-triangle" onclick="geoSetTool('triangle')" title="Triangle">△</button>
+    <button class="geo-tool-btn" id="geoTool-polygon" onclick="geoSetTool('polygon')" title="Polygon">⬡</button>
+    <div class="geo-divider"></div>
+    <button class="geo-tool-btn" id="geoTool-measure" onclick="geoSetTool('measure')" title="Measure">⌇</button>
+    <button class="geo-tool-btn" id="geoTool-angle" onclick="geoSetTool('angle')" title="Angle">∠</button>
+    <div class="geo-divider"></div>
+    <button class="geo-tool-btn" id="geoTool-text" onclick="geoSetTool('text')" title="Label">T</button>
+  </div>
+  <!-- CANVAS AREA -->
+  <div class="geo-canvas-area">
+    <div class="geo-canvas-bar">
+      STROKE
+      <div class="geo-swatch sel" style="background:#00D4B4" onclick="geoSetColor('#00D4B4',this)"></div>
+      <div class="geo-swatch" style="background:#FFB347" onclick="geoSetColor('#FFB347',this)"></div>
+      <div class="geo-swatch" style="background:#ff6b6b" onclick="geoSetColor('#ff6b6b',this)"></div>
+      <div class="geo-swatch" style="background:#a78bfa" onclick="geoSetColor('#a78bfa',this)"></div>
+      <div class="geo-swatch" style="background:#F0F4F8" onclick="geoSetColor('#F0F4F8',this)"></div>
+      &nbsp;WIDTH
+      <input type="range" min="1" max="8" value="2" id="geoStrokeW" style="width:70px;height:4px;" oninput="geo.strokeWidth=+this.value">
+      &nbsp;SIDES
+      <input type="number" id="geoPolyN" min="3" max="12" value="6" style="width:38px;background:#162b44;border:1px solid #1e3d5c;border-radius:5px;color:#F0F4F8;padding:2px 6px;font-size:11px;outline:none;">
+      <span class="geo-status" id="geoStatus">Select a tool to start</span>
+      <button class="geo-clear-btn" onclick="geoClearAll()">Clear</button>
+    </div>
+    <div class="geo-canvas-wrap" id="geoCanvasWrap">
+      <canvas id="geoCanvas"></canvas>
+      <div class="geo-coords" id="geoCoords">x:0 y:0</div>
+    </div>
+  </div>
+  <!-- RIGHT PANEL -->
+  <div class="geo-side">
+    <div class="geo-tabs">
+      <div class="geo-tab active" id="geotab-shapes" onclick="geoSwitchTab('shapes')">SHAPES</div>
+      <div class="geo-tab" id="geotab-measure" onclick="geoSwitchTab('measure')">MEASURES</div>
+      <div class="geo-tab" id="geotab-hints" onclick="geoSwitchTab('hints')">AI HINTS</div>
+    </div>
+    <div class="geo-panel" id="geopanel-shapes">
+      <div id="geoShapesEmpty" style="text-align:center;color:#7a9bb5;font-size:11.5px;padding:20px 8px;opacity:.7">Draw shapes to see them listed here.</div>
+      <div id="geoShapesList"></div>
+    </div>
+    <div class="geo-panel" id="geopanel-measure" style="display:none">
+      <div id="geoMeasuresEmpty" style="text-align:center;color:#7a9bb5;font-size:11.5px;padding:20px 8px;opacity:.7">Select a shape to view measurements.</div>
+      <div id="geoMeasuresList"></div>
+    </div>
+    <div class="geo-panel" id="geopanel-hints" style="display:none">
+      <div id="geoHintsList">
+        <div class="geo-hint-card ai-card">
+          <div class="geo-hint-tag ai">✦ GEOSOLVE AI</div>
+          <div class="geo-hint-text">Hello! Draw shapes on the canvas, then ask me anything — areas, angles, perimeters, and more.</div>
+        </div>
+      </div>
+    </div>
+    <div class="geo-ask-area" id="geoAskArea" style="display:none">
+      <textarea id="geoHintInput" placeholder="Ask about shapes… e.g. 'What is the area?'" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();geoSendHint();}"></textarea>
+      <button class="geo-ask-btn" onclick="geoSendHint()">ASK</button>
+    </div>
+  </div>
+</div>`;
+
+      // ── GEOMETRY ENGINE INIT ─────────────────────────────
+      const geoCanvas = wbody.querySelector('#geoCanvas');
+      const geoCtx = geoCanvas.getContext('2d');
+      const GEO_GRID = 20;
+      const geo = {
+        tool:'select', color:'#00D4B4', strokeWidth:2,
+        shapes:[], selected:null, drawing:false,
+        sx:0, sy:0, mx:0, my:0, anglePoints:[], dragOffX:0, dragOffY:0
+      };
+
+      function geoResize(){
+        const wrap = wbody.querySelector('#geoCanvasWrap');
+        geoCanvas.width = wrap.clientWidth;
+        geoCanvas.height = wrap.clientHeight;
+        geoRedraw();
+      }
+      const ro = new ResizeObserver(geoResize);
+      ro.observe(wbody.querySelector('#geoCanvasWrap'));
+      setTimeout(geoResize, 50);
+
+      function geoSnap(v){ return Math.round(v/GEO_GRID)*GEO_GRID; }
+
+      function geoDrawGrid(){
+        const W=geoCanvas.width, H=geoCanvas.height, G=GEO_GRID;
+        geoCtx.save();
+        geoCtx.strokeStyle='rgba(30,61,92,0.6)'; geoCtx.lineWidth=0.5;
+        for(let x=0;x<W;x+=G){geoCtx.beginPath();geoCtx.moveTo(x,0);geoCtx.lineTo(x,H);geoCtx.stroke();}
+        for(let y=0;y<H;y+=G){geoCtx.beginPath();geoCtx.moveTo(0,y);geoCtx.lineTo(W,y);geoCtx.stroke();}
+        geoCtx.strokeStyle='rgba(30,61,92,0.9)'; geoCtx.lineWidth=1;
+        for(let x=0;x<W;x+=G*5){geoCtx.beginPath();geoCtx.moveTo(x,0);geoCtx.lineTo(x,H);geoCtx.stroke();}
+        for(let y=0;y<H;y+=G*5){geoCtx.beginPath();geoCtx.moveTo(0,y);geoCtx.lineTo(W,y);geoCtx.stroke();}
+        geoCtx.fillStyle='rgba(0,212,180,0.12)';
+        for(let x=0;x<W;x+=G*5)for(let y=0;y<H;y+=G*5){geoCtx.beginPath();geoCtx.arc(x,y,2,0,Math.PI*2);geoCtx.fill();}
+        geoCtx.restore();
+      }
+
+      function geoDrawHandle(x,y){
+        geoCtx.save(); geoCtx.shadowBlur=0;
+        geoCtx.fillStyle='#0D1B2A'; geoCtx.strokeStyle='#00D4B4'; geoCtx.lineWidth=1.5;
+        geoCtx.beginPath(); geoCtx.arc(x,y,5,0,Math.PI*2); geoCtx.fill(); geoCtx.stroke();
+        geoCtx.restore();
+      }
+
+      function geoShapeStyle(s, sel){
+        geoCtx.strokeStyle = s.color||'#00D4B4';
+        geoCtx.lineWidth = (s.sw||2)+(sel?1:0);
+        geoCtx.lineCap='round'; geoCtx.lineJoin='round';
+        geoCtx.shadowBlur = sel ? 8 : 0;
+        geoCtx.shadowColor = s.color||'#00D4B4';
+      }
+
+      function geoDrawShape(s, sel=false){
+        geoCtx.save(); geoShapeStyle(s,sel); geoCtx.fillStyle='transparent';
+        const G=GEO_GRID;
+        if(s.type==='line'){
+          geoCtx.beginPath(); geoCtx.moveTo(s.x1,s.y1); geoCtx.lineTo(s.x2,s.y2); geoCtx.stroke();
+          if(sel){geoDrawHandle(s.x1,s.y1); geoDrawHandle(s.x2,s.y2);}
+        } else if(s.type==='rect'){
+          const w=s.x2-s.x1, h=s.y2-s.y1;
+          geoCtx.strokeRect(s.x1,s.y1,w,h);
+          if(sel){geoCtx.fillStyle='rgba(0,212,180,0.06)';geoCtx.fillRect(s.x1,s.y1,w,h);}
+        } else if(s.type==='circle'){
+          geoCtx.beginPath(); geoCtx.arc(s.cx,s.cy,s.r,0,Math.PI*2); geoCtx.stroke();
+          if(sel){geoCtx.fillStyle='rgba(0,212,180,0.05)';geoCtx.fill();geoDrawHandle(s.cx,s.cy);geoDrawHandle(s.cx+s.r,s.cy);}
+        } else if(s.type==='triangle'||s.type==='polygon'){
+          geoCtx.beginPath(); geoCtx.moveTo(s.pts[0].x,s.pts[0].y);
+          s.pts.slice(1).forEach(p=>geoCtx.lineTo(p.x,p.y)); geoCtx.closePath(); geoCtx.stroke();
+          if(sel){geoCtx.fillStyle='rgba(0,212,180,0.05)';geoCtx.fill();s.pts.forEach(p=>geoDrawHandle(p.x,p.y));}
+        } else if(s.type==='measure'){
+          const dx=s.x2-s.x1, dy=s.y2-s.y1, dist=Math.sqrt(dx*dx+dy*dy);
+          geoCtx.strokeStyle='#FFB347'; geoCtx.lineWidth=1.5; geoCtx.setLineDash([6,4]);
+          geoCtx.beginPath(); geoCtx.moveTo(s.x1,s.y1); geoCtx.lineTo(s.x2,s.y2); geoCtx.stroke(); geoCtx.setLineDash([]);
+          const ang=Math.atan2(dy,dx);
+          [[s.x1,s.y1],[s.x2,s.y2]].forEach(([tx,ty])=>{
+            geoCtx.beginPath();geoCtx.moveTo(tx+Math.cos(ang+Math.PI/2)*6,ty+Math.sin(ang+Math.PI/2)*6);
+            geoCtx.lineTo(tx+Math.cos(ang-Math.PI/2)*6,ty+Math.sin(ang-Math.PI/2)*6);geoCtx.stroke();
+          });
+          const mx2=(s.x1+s.x2)/2, my2=(s.y1+s.y2)/2;
+          geoCtx.fillStyle='#FFB347'; geoCtx.font='600 11px Space Grotesk,sans-serif'; geoCtx.textAlign='center';
+          geoCtx.fillText((dist/G).toFixed(2)+' u', mx2, my2-8);
+        } else if(s.type==='angle' && s.pts && s.pts.length===3){
+          const [v,a1,a2]=s.pts;
+          geoCtx.strokeStyle='#a78bfa'; geoCtx.lineWidth=1.5; geoCtx.setLineDash([5,3]);
+          geoCtx.beginPath();geoCtx.moveTo(v.x,v.y);geoCtx.lineTo(a1.x,a1.y);geoCtx.stroke();
+          geoCtx.beginPath();geoCtx.moveTo(v.x,v.y);geoCtx.lineTo(a2.x,a2.y);geoCtx.stroke();
+          geoCtx.setLineDash([]);
+          const ang1=Math.atan2(a1.y-v.y,a1.x-v.x), ang2=Math.atan2(a2.y-v.y,a2.x-v.x);
+          geoCtx.beginPath(); geoCtx.arc(v.x,v.y,28,ang1,ang2); geoCtx.stroke();
+          const deg=geoAngleBetween(v,a1,a2).toFixed(1);
+          const midA=(ang1+ang2)/2;
+          geoCtx.fillStyle='#a78bfa'; geoCtx.font='600 11px Space Grotesk,sans-serif'; geoCtx.textAlign='center'; geoCtx.setLineDash([]);
+          geoCtx.fillText(deg+'°', v.x+Math.cos(midA)*46, v.y+Math.sin(midA)*46);
+        } else if(s.type==='text'){
+          geoCtx.fillStyle=s.color||'#F0F4F8'; geoCtx.font='500 13px Space Grotesk,sans-serif'; geoCtx.textAlign='left';
+          geoCtx.fillText(s.text, s.x, s.y);
+        }
+        geoCtx.restore();
+      }
+
+      function geoRedraw(){
+        geoCtx.clearRect(0,0,geoCanvas.width,geoCanvas.height);
+        geoDrawGrid();
+        geo.shapes.forEach(s=>geoDrawShape(s, s===geo.selected));
+        if(geo.drawing) geoDrawPreview();
+      }
+
+      function geoDrawPreview(){
+        const G=GEO_GRID;
+        geoCtx.save(); geoCtx.strokeStyle=geo.color; geoCtx.lineWidth=geo.strokeWidth;
+        geoCtx.setLineDash([5,4]); geoCtx.globalAlpha=0.7;
+        if(geo.tool==='line'){geoCtx.beginPath();geoCtx.moveTo(geo.sx,geo.sy);geoCtx.lineTo(geo.mx,geo.my);geoCtx.stroke();}
+        else if(geo.tool==='rect'){geoCtx.strokeRect(geo.sx,geo.sy,geo.mx-geo.sx,geo.my-geo.sy);}
+        else if(geo.tool==='circle'){const r=Math.hypot(geo.mx-geo.sx,geo.my-geo.sy);geoCtx.beginPath();geoCtx.arc(geo.sx,geo.sy,r,0,Math.PI*2);geoCtx.stroke();}
+        else if(geo.tool==='triangle'){const mx2=(geo.sx+geo.mx)/2;geoCtx.beginPath();geoCtx.moveTo(mx2,geo.sy);geoCtx.lineTo(geo.mx,geo.my);geoCtx.lineTo(geo.sx,geo.my);geoCtx.closePath();geoCtx.stroke();}
+        else if(geo.tool==='polygon'){const n=+wbody.querySelector('#geoPolyN').value||6;const r=Math.hypot(geo.mx-geo.sx,geo.my-geo.sy);geoCtx.beginPath();for(let i=0;i<n;i++){const a=(i/n)*Math.PI*2-Math.PI/2;i===0?geoCtx.moveTo(geo.sx+r*Math.cos(a),geo.sy+r*Math.sin(a)):geoCtx.lineTo(geo.sx+r*Math.cos(a),geo.sy+r*Math.sin(a));}geoCtx.closePath();geoCtx.stroke();}
+        else if(geo.tool==='measure'){geoCtx.strokeStyle='#FFB347';geoCtx.beginPath();geoCtx.moveTo(geo.sx,geo.sy);geoCtx.lineTo(geo.mx,geo.my);geoCtx.stroke();}
+        geoCtx.restore();
+      }
+
+      // ── MATH HELPERS ───
+      function geoAngleBetween(v,a1,a2){
+        const dx1=a1.x-v.x,dy1=a1.y-v.y, dx2=a2.x-v.x,dy2=a2.y-v.y;
+        const dot=dx1*dx2+dy1*dy2, mag=Math.hypot(dx1,dy1)*Math.hypot(dx2,dy2);
+        return mag>0 ? Math.acos(Math.min(1,Math.max(-1,dot/mag)))*180/Math.PI : 0;
+      }
+      function geoPolyArea(pts){let a=0;for(let i=0,j=pts.length-1;i<pts.length;j=i++)a+=(pts[j].x+pts[i].x)*(pts[j].y-pts[i].y);return Math.abs(a/2);}
+      function geoPolyPerimeter(pts){let p=0;for(let i=0,j=pts.length-1;i<pts.length;j=i++)p+=Math.hypot(pts[i].x-pts[j].x,pts[i].y-pts[j].y);return p;}
+
+      function geoGetMeasurements(s){
+        const u=1/GEO_GRID;
+        if(s.type==='line'){const d=Math.hypot(s.x2-s.x1,s.y2-s.y1)*u;const a=Math.atan2(s.y2-s.y1,s.x2-s.x1)*180/Math.PI;return[['Length',d.toFixed(3)+' u'],['Angle',a.toFixed(1)+'°']];}
+        if(s.type==='rect'){const w=Math.abs(s.x2-s.x1)*u,h=Math.abs(s.y2-s.y1)*u;return[['Width',w.toFixed(3)+' u'],['Height',h.toFixed(3)+' u'],['Area',(w*h).toFixed(3)+' u²'],['Perimeter',(2*(w+h)).toFixed(3)+' u'],['Diagonal',Math.hypot(w,h).toFixed(3)+' u']];}
+        if(s.type==='circle'){const r=s.r*u;return[['Radius',r.toFixed(3)+' u'],['Diameter',(2*r).toFixed(3)+' u'],['Circumference',(2*Math.PI*r).toFixed(3)+' u'],['Area',(Math.PI*r*r).toFixed(3)+' u²']];}
+        if(s.type==='triangle'){const pts=s.pts,area=geoPolyArea(pts)*u*u,per=geoPolyPerimeter(pts)*u,sides=pts.map((_,i)=>Math.hypot(pts[(i+1)%3].x-pts[i].x,pts[(i+1)%3].y-pts[i].y)*u),angles=pts.map((_,i)=>geoAngleBetween(pts[i],pts[(i+1)%3],pts[(i+2)%3]));return[['Side a',sides[0].toFixed(2)+' u'],['Side b',sides[1].toFixed(2)+' u'],['Side c',sides[2].toFixed(2)+' u'],['Angle A',angles[0].toFixed(1)+'°'],['Angle B',angles[1].toFixed(1)+'°'],['Angle C',angles[2].toFixed(1)+'°'],['Area',area.toFixed(3)+' u²'],['Perimeter',per.toFixed(3)+' u']];}
+        if(s.type==='polygon'){return[['Sides',s.sides||s.pts.length],['Area',geoPolyArea(s.pts)*u*u.toFixed(3)+' u²'],['Perimeter',(geoPolyPerimeter(s.pts)*u).toFixed(3)+' u']];}
+        if(s.type==='measure'){return[['Distance',(Math.hypot(s.x2-s.x1,s.y2-s.y1)/GEO_GRID).toFixed(3)+' u']];}
+        if(s.type==='angle'&&s.pts&&s.pts.length===3){const deg=geoAngleBetween(s.pts[0],s.pts[1],s.pts[2]);return[['Angle',deg.toFixed(2)+'°'],['Supplement',(180-deg).toFixed(2)+'°']];}
+        return [];
+      }
+
+      const GEO_ICONS={line:'╱',rect:'▭',circle:'○',triangle:'△',polygon:'⬡',measure:'⌇',angle:'∠',text:'T'};
+      const GEO_NAMES={line:'Line',rect:'Rectangle',circle:'Circle',triangle:'Triangle',polygon:'Polygon',measure:'Measurement',angle:'Angle',text:'Label'};
+
+      function geoUpdateShapes(){
+        const list=wbody.querySelector('#geoShapesList');
+        const empty=wbody.querySelector('#geoShapesEmpty');
+        list.innerHTML='';
+        empty.style.display=geo.shapes.length?'none':'block';
+        geo.shapes.forEach((s,i)=>{
+          const div=document.createElement('div');
+          div.className='geo-shape-item'+(s===geo.selected?' sel':'');
+          div.innerHTML=`<span style="color:${s.color||'#00D4B4'}">${GEO_ICONS[s.type]||'◻'}</span>
+            <span style="flex:1;font-size:11.5px;font-weight:600;">${GEO_NAMES[s.type]||s.type} <span style="color:#7a9bb5;font-weight:400">#${i+1}</span></span>
+            <button class="geo-shape-del" onclick="event.stopPropagation();geoDeleteShape(${i})">✕</button>`;
+          div.onclick=()=>{geo.selected=s;geoUpdateShapes();geoUpdateMeasures();geoRedraw();};
+          list.appendChild(div);
+        });
+      }
+      function geoUpdateMeasures(){
+        const el=wbody.querySelector('#geoMeasuresList');
+        const empty=wbody.querySelector('#geoMeasuresEmpty');
+        if(!geo.selected){el.innerHTML='';empty.style.display='block';return;}
+        const m=geoGetMeasurements(geo.selected);
+        empty.style.display=m.length?'none':'block';
+        el.innerHTML=`<div style="font-size:10.5px;font-weight:700;color:#7a9bb5;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">${GEO_NAMES[geo.selected.type]||geo.selected.type} — Properties</div>`
+          +m.map(([k,v])=>`<div class="geo-measure-row"><span class="geo-mkey">${k}</span><span class="geo-mval">${v}</span></div>`).join('');
+      }
+
+      // expose globals for onclick handlers
+      window.geoSetTool = function(t){
+        geo.tool=t; geo.anglePoints=[];
+        wbody.querySelectorAll('.geo-tool-btn').forEach(b=>b.classList.remove('active'));
+        const btn=wbody.querySelector('#geoTool-'+t); if(btn) btn.classList.add('active');
+        geoCanvas.style.cursor=t==='select'?'default':'crosshair';
+        const msgs={select:'Click to select, drag to move',line:'Drag to draw a line',rect:'Drag to draw a rectangle',circle:'Click center, drag for radius',triangle:'Drag to draw a triangle',polygon:'Drag to set polygon size',measure:'Drag to measure distance',angle:'Click 3 points: vertex → arm1 → arm2',text:'Click to place a label'};
+        wbody.querySelector('#geoStatus').textContent = msgs[t]||'';
+      };
+      window.geoSetColor = function(c,el){
+        geo.color=c;
+        wbody.querySelectorAll('.geo-swatch').forEach(s=>s.classList.remove('sel'));
+        el.classList.add('sel');
+      };
+      window.geoClearAll = function(){
+        if(!geo.shapes.length) return;
+        if(!confirm('Clear all shapes?')) return;
+        geo.shapes=[]; geo.selected=null; geoUpdateShapes(); geoUpdateMeasures(); geoRedraw();
+      };
+      window.geoDeleteShape = function(i){
+        if(geo.shapes[i]===geo.selected) geo.selected=null;
+        geo.shapes.splice(i,1); geoUpdateShapes(); geoUpdateMeasures(); geoRedraw();
+      };
+      window.geoSwitchTab = function(t){
+        ['shapes','measure','hints'].forEach(x=>{
+          wbody.querySelector('#geotab-'+x).classList.toggle('active',x===t);
+          wbody.querySelector('#geopanel-'+x).style.display=x===t?'':'none';
+        });
+        const askArea=wbody.querySelector('#geoAskArea');
+        if(askArea) askArea.style.display=t==='hints'?'':'none';
+        if(t==='measure') geoUpdateMeasures();
+      };
+      window.geoSendHint = function(){
+        const inp=wbody.querySelector('#geoHintInput');
+        const q=inp.value.trim(); if(!q) return;
+        inp.value=''; geoAskAI(q);
+      };
+
+      function geoAskAI(question){
+        window.geoSwitchTab('hints');
+        const list=wbody.querySelector('#geoHintsList');
+        const ucard=document.createElement('div'); ucard.className='geo-hint-card user-card';
+        ucard.innerHTML=`<div class="geo-hint-tag user">YOU</div><div class="geo-hint-text">${question.replace(/</g,'&lt;')}</div>`;
+        list.appendChild(ucard);
+        const aicard=document.createElement('div'); aicard.className='geo-hint-card ai-card';
+        aicard.innerHTML=`<div class="geo-hint-tag ai">✦ GEOSOLVE AI</div><div class="geo-thinking"><span></span><span></span><span></span></div>`;
+        list.appendChild(aicard); aicard.scrollIntoView({behavior:'smooth'});
+        // Build canvas summary
+        const G=GEO_GRID, u=1/G;
+        const summary = geo.shapes.length===0 ? 'Canvas is empty.' : geo.shapes.map((s,i)=>{
+          const m=geoGetMeasurements(s);
+          return (i+1)+'. '+(GEO_NAMES[s.type]||s.type)+': '+m.map(([k,v])=>k+'='+v).join(', ');
+        }).join('\n');
+        fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+          model:'claude-sonnet-4-6',max_tokens:1000,
+          system:'You are GeoSolve AI, an expert geometry tutor. The user has drawn shapes on a canvas (1 unit = 20px). Provide helpful, educational answers. Wrap formulas in <formula>...</formula> tags.',
+          messages:[{role:'user',content:'Canvas state:\n'+summary+'\n\nQuestion: '+question}]
+        })})
+        .then(r=>{if(!r.ok) throw new Error('api');return r.json();})
+        .then(data=>{
+          let text=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+          if(!text) throw new Error('empty');
+          geoRenderAI(aicard,text);
+        })
+        .catch(()=>{
+          // Offline fallback
+          const offText = geoOfflineEngine(question, geo.shapes, geo.selected, GEO_GRID);
+          geoRenderAI(aicard, offText);
+        });
+      }
+
+      function geoRenderAI(card, text){
+        const regex=/<formula>([\s\S]*?)<\/formula>/g;
+        let inner='', last=0, m;
+        card.innerHTML=`<div class="geo-hint-tag ai">✦ GEOSOLVE AI</div>`;
+        while((m=regex.exec(text))!==null){
+          if(m.index>last) card.innerHTML+=`<div class="geo-hint-text">${text.slice(last,m.index).replace(/\n/g,'<br>')}</div>`;
+          card.innerHTML+=`<div class="geo-hint-formula">${m[1].replace(/</g,'&lt;')}</div>`;
+          last=m.index+m[0].length;
+        }
+        if(last<text.length) card.innerHTML+=`<div class="geo-hint-text">${text.slice(last).replace(/\n/g,'<br>')}</div>`;
+        card.scrollIntoView({behavior:'smooth'});
+      }
+
+      function geoOfflineEngine(q, shapes, sel, G){
+        const u=1/G;
+        const ql=q.toLowerCase();
+        if(!shapes.length) return 'Canvas is empty! Draw shapes first.';
+        if(/area/i.test(ql) && sel){
+          const m=geoGetMeasurements(sel);
+          const arow=m.find(([k])=>k==='Area');
+          if(arow) return 'Area of your '+GEO_NAMES[sel.type]+':\n<formula>A = '+arow[1]+'</formula>';
+        }
+        if(/perimeter|circumference/i.test(ql) && sel){
+          const m=geoGetMeasurements(sel);
+          const pr=m.find(([k])=>k==='Perimeter'||k==='Circumference');
+          if(pr) return 'Perimeter of your '+GEO_NAMES[sel.type]+':\n<formula>P = '+pr[1]+'</formula>';
+        }
+        if(/angle|degrees?/i.test(ql) && sel && sel.type==='triangle'){
+          const m=geoGetMeasurements(sel);
+          const angles=m.filter(([k])=>k.startsWith('Angle'));
+          return 'Angles of your triangle:\n'+angles.map(([k,v])=>`${k}: <formula>${v}</formula>`).join('\n');
+        }
+        // General analysis
+        let resp='Canvas analysis:\n\n';
+        shapes.forEach((s,i)=>{
+          const m=geoGetMeasurements(s);
+          resp+=`${GEO_NAMES[s.type]||s.type} #${i+1}:\n`;
+          m.forEach(([k,v])=>{resp+=`  • ${k}: ${v}\n`;});
+          resp+='\n';
+        });
+        return resp;
+      }
+
+      // ── MOUSE EVENTS ────
+      function geoGetXY(e){
+        const r=geoCanvas.getBoundingClientRect();
+        return{x:geoSnap(e.clientX-r.left), y:geoSnap(e.clientY-r.top)};
+      }
+      function geoHitShape(s,x,y){
+        const T=8;
+        function dSeg(px,py,x1,y1,x2,y2){const dx=x2-x1,dy=y2-y1,l2=dx*dx+dy*dy;if(!l2)return Math.hypot(px-x1,py-y1);const t=Math.max(0,Math.min(1,((px-x1)*dx+(py-y1)*dy)/l2));return Math.hypot(px-(x1+t*dx),py-(y1+t*dy));}
+        function inPoly(x,y,pts){let ins=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const xi=pts[i].x,yi=pts[i].y,xj=pts[j].x,yj=pts[j].y;if(((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi))ins=!ins;}return ins;}
+        if(s.type==='line'||s.type==='measure') return dSeg(x,y,s.x1,s.y1,s.x2,s.y2)<T;
+        if(s.type==='rect') return x>=s.x1-T&&x<=s.x2+T&&y>=s.y1-T&&y<=s.y2+T;
+        if(s.type==='circle'){const d=Math.hypot(x-s.cx,y-s.cy);return Math.abs(d-s.r)<T;}
+        if(s.type==='triangle'||s.type==='polygon') return inPoly(x,y,s.pts);
+        if(s.type==='text') return x>=s.x-T&&x<=s.x+100&&y>=s.y-16&&y<=s.y+T;
+        return false;
+      }
+      function geoShapeCenter(s){
+        if(s.type==='line'||s.type==='measure') return{x:(s.x1+s.x2)/2,y:(s.y1+s.y2)/2};
+        if(s.type==='rect') return{x:(s.x1+s.x2)/2,y:(s.y1+s.y2)/2};
+        if(s.type==='circle') return{x:s.cx,y:s.cy};
+        if(['triangle','polygon','angle'].includes(s.type)){const xs=s.pts.map(p=>p.x),ys=s.pts.map(p=>p.y);return{x:(Math.min(...xs)+Math.max(...xs))/2,y:(Math.min(...ys)+Math.max(...ys))/2};}
+        if(s.type==='text') return{x:s.x,y:s.y};
+        return{x:0,y:0};
+      }
+      function geoMoveShape(s,cx,cy){
+        const c=geoShapeCenter(s),dx=cx-c.x,dy=cy-c.y;
+        if(s.type==='line'||s.type==='measure'){s.x1+=dx;s.y1+=dy;s.x2+=dx;s.y2+=dy;}
+        else if(s.type==='rect'){s.x1+=dx;s.y1+=dy;s.x2+=dx;s.y2+=dy;}
+        else if(s.type==='circle'){s.cx+=dx;s.cy+=dy;}
+        else if(['triangle','polygon','angle'].includes(s.type)) s.pts=s.pts.map(p=>({x:p.x+dx,y:p.y+dy}));
+        else if(s.type==='text'){s.x+=dx;s.y+=dy;}
+      }
+      geoCanvas.addEventListener('mousedown',e=>{
+        const {x,y}=geoGetXY(e);
+        if(geo.tool==='select'){
+          let hit=null;
+          for(let i=geo.shapes.length-1;i>=0;i--){if(geoHitShape(geo.shapes[i],x,y)){hit=geo.shapes[i];break;}}
+          geo.selected=hit||null;
+          if(hit){const c=geoShapeCenter(hit);geo.dragOffX=x-c.x;geo.dragOffY=y-c.y;}
+          geoUpdateShapes();geoUpdateMeasures();geoRedraw();return;
+        }
+        if(geo.tool==='angle'){
+          geo.anglePoints.push({x,y});
+          if(geo.anglePoints.length===3){
+            geo.shapes.push({type:'angle',pts:[...geo.anglePoints],color:geo.color,sw:geo.strokeWidth});
+            geo.anglePoints=[];geoUpdateShapes();
+          }
+          geoRedraw();return;
+        }
+        if(geo.tool==='text'){
+          const label=prompt('Enter label:'); if(label) geo.shapes.push({type:'text',x,y,text:label,color:geo.color});
+          geoUpdateShapes();geoRedraw();return;
+        }
+        geo.drawing=true; geo.sx=x; geo.sy=y;
+      });
+      geoCanvas.addEventListener('mousemove',e=>{
+        const {x,y}=geoGetXY(e);
+        geo.mx=x; geo.my=y;
+        wbody.querySelector('#geoCoords').textContent='x:'+x+' y:'+y;
+        if(geo.drawing){geoRedraw();return;}
+        if(geo.tool==='select'&&e.buttons===1&&geo.selected){
+          geoMoveShape(geo.selected,x-geo.dragOffX,y-geo.dragOffY);
+          geoUpdateMeasures(); geoRedraw();
+        }
+      });
+      geoCanvas.addEventListener('mouseup',e=>{
+        if(!geo.drawing) return; geo.drawing=false;
+        const {x,y}=geoGetXY(e);
+        if(Math.abs(x-geo.sx)<2&&Math.abs(y-geo.sy)<2){geoRedraw();return;}
+        let s=null;
+        const G=GEO_GRID;
+        if(geo.tool==='line') s={type:'line',x1:geo.sx,y1:geo.sy,x2:x,y2:y};
+        else if(geo.tool==='rect'){const[rx,ry]=[Math.min(geo.sx,x),Math.min(geo.sy,y)];s={type:'rect',x1:rx,y1:ry,x2:Math.max(geo.sx,x),y2:Math.max(geo.sy,y)};}
+        else if(geo.tool==='circle'){const r=Math.hypot(x-geo.sx,y-geo.sy);if(r>3)s={type:'circle',cx:geo.sx,cy:geo.sy,r};}
+        else if(geo.tool==='triangle'){const mx2=(geo.sx+x)/2;s={type:'triangle',pts:[{x:mx2,y:geo.sy},{x,y},{x:geo.sx,y}]};}
+        else if(geo.tool==='polygon'){const n=+wbody.querySelector('#geoPolyN').value||6;const r=Math.hypot(x-geo.sx,y-geo.sy);const pts=[];for(let i=0;i<n;i++){const a=(i/n)*Math.PI*2-Math.PI/2;pts.push({x:geo.sx+r*Math.cos(a),y:geo.sy+r*Math.sin(a)});}s={type:'polygon',pts,sides:n};}
+        else if(geo.tool==='measure') s={type:'measure',x1:geo.sx,y1:geo.sy,x2:x,y2:y};
+        if(s){s.color=geo.color;s.sw=geo.strokeWidth;geo.shapes.push(s);geo.selected=s;geoUpdateShapes();geoUpdateMeasures();}
+        geoRedraw();
+      });
+      geoCanvas.addEventListener('mouseleave',()=>{geo.drawing=false;geoRedraw();});
+
+      geoUpdateShapes(); geoUpdateMeasures();
+    }
+  });
+}
+
+/* ========================= APP: MUSIC PLAYER ========================= */
+function launchMusic(){
+  const pid = Kernel.spawn('nebula-music', {cpu:1.8, mem:38});
+  WM.createWindow({title:'Music Player', icon:'🎵', width:640, height:430, pid,
+    body:(wbody)=>{
+      // State
+      let playlist = [];   // [{name, url, duration, objUrl}]
+      let cur = 0;
+      let shuffle = false, repeat = false;
+      const audio = new Audio();
+      audio.volume = 0.7;
+
+      // Helper: format seconds to m:ss
+      function fmt(s){ if(!isFinite(s)) return '0:00'; const m=Math.floor(s/60); return m+':'+(Math.floor(s%60)).toString().padStart(2,'0'); }
+
+      wbody.innerHTML = `
+<div class="music-player">
+  <div class="music-header" style="display:flex;align-items:center;justify-content:space-between;">
+    <div><h2 style="margin:0 0 2px;font-size:14px;font-weight:700">🎵 Music Player</h2><p style="margin:0;font-size:11px;color:var(--muted)">Open audio files from your device to play</p></div>
+    <label style="cursor:pointer;background:linear-gradient(135deg,var(--accent),#5a3df0);color:#fff;padding:7px 13px;border-radius:8px;font-size:12px;font-weight:700;white-space:nowrap;box-shadow:0 4px 14px rgba(124,92,255,.35);">
+      + Add Files <input type="file" id="muFileIn" accept="audio/*" multiple style="display:none">
+    </label>
+  </div>
+  <div class="music-main">
+    <div class="music-left">
+      <div class="music-art" id="musicArt" style="position:relative;overflow:hidden;">🎵
+        <div id="muVisWrap" style="position:absolute;inset:0;display:flex;align-items:flex-end;gap:1px;padding:8px;opacity:0;transition:opacity .4s;"></div>
+      </div>
+      <div class="music-info">
+        <div class="music-title" id="musicTitle" style="font-size:13px;">No track loaded</div>
+        <div class="music-artist" id="musicArtist" style="font-size:11px;">Open audio files to begin</div>
+      </div>
+      <div class="music-progress-wrap">
+        <div class="music-time"><span id="musicElapsed">0:00</span><span id="musicTotal">0:00</span></div>
+        <input class="music-progress" type="range" min="0" max="100" value="0" id="musicProg" style="cursor:pointer;">
+      </div>
+      <div class="music-controls">
+        <button class="mc-btn" id="mcShuffle" title="Shuffle" style="font-size:14px;">🔀</button>
+        <button class="mc-btn" id="mcPrev" title="Previous">⏮</button>
+        <button class="mc-btn primary" id="mcPlay" title="Play/Pause">▶</button>
+        <button class="mc-btn" id="mcNext" title="Next">⏭</button>
+        <button class="mc-btn" id="mcRepeat" title="Repeat" style="font-size:14px;">🔁</button>
+      </div>
+      <div class="music-vol">🔈<input type="range" min="0" max="100" value="70" id="musicVol" style="flex:1;">🔊</div>
+    </div>
+    <div class="music-playlist">
+      <h4 id="muPlTitle">PLAYLIST (0)</h4>
+      <div class="playlist-items" id="playlistItems">
+        <div style="text-align:center;padding:24px 12px;color:var(--muted);font-size:11.5px;line-height:1.7;">
+          No tracks yet.<br>Click <strong style="color:var(--text)">+ Add Files</strong> to open<br>MP3, WAV, FLAC, OGG and more.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>`;
+
+      // ── DOM refs ─────────────────────────────────────────
+      const artEl  = wbody.querySelector('#musicArt');
+      const titleEl= wbody.querySelector('#musicTitle');
+      const artistEl=wbody.querySelector('#musicArtist');
+      const progEl = wbody.querySelector('#musicProg');
+      const elapsedEl=wbody.querySelector('#musicElapsed');
+      const totalEl=wbody.querySelector('#musicTotal');
+      const playBtn=wbody.querySelector('#mcPlay');
+      const plItems=wbody.querySelector('#playlistItems');
+      const plTitle=wbody.querySelector('#muPlTitle');
+      const visWrap=wbody.querySelector('#muVisWrap');
+
+      // ── Progress bar scrub ───────────────────────────────
+      progEl.addEventListener('input', ()=>{
+        if(audio.duration) audio.currentTime = (progEl.value/100)*audio.duration;
+      });
+
+      // ── Volume ───────────────────────────────────────────
+      wbody.querySelector('#musicVol').addEventListener('input', e=>{ audio.volume=e.target.value/100; });
+
+      // ── Shuffle/Repeat ───────────────────────────────────
+      wbody.querySelector('#mcShuffle').addEventListener('click', ()=>{
+        shuffle=!shuffle;
+        wbody.querySelector('#mcShuffle').style.color=shuffle?'var(--accent2)':'';
+      });
+      wbody.querySelector('#mcRepeat').addEventListener('click', ()=>{
+        repeat=!repeat; audio.loop=repeat;
+        wbody.querySelector('#mcRepeat').style.color=repeat?'var(--accent2)':'';
+      });
+
+      // ── Prev / Next ──────────────────────────────────────
+      wbody.querySelector('#mcPrev').addEventListener('click', ()=>{
+        if(audio.currentTime>3){ audio.currentTime=0; return; }
+        cur=(cur-1+playlist.length)%playlist.length; loadTrack(cur); audio.play();
+      });
+      wbody.querySelector('#mcNext').addEventListener('click', ()=>{
+        nextTrack();
+      });
+
+      // ── Play/Pause ───────────────────────────────────────
+      playBtn.addEventListener('click', ()=>{
+        if(!playlist.length) return;
+        if(audio.paused) audio.play(); else audio.pause();
+      });
+
+      // ── Audio events ─────────────────────────────────────
+      audio.addEventListener('play',  ()=>{ playBtn.textContent='⏸'; artEl.classList.add('playing'); showVis(); });
+      audio.addEventListener('pause', ()=>{ playBtn.textContent='▶'; artEl.classList.remove('playing'); });
+      audio.addEventListener('ended', ()=>{ nextTrack(); });
+      audio.addEventListener('timeupdate', ()=>{
+        if(!audio.duration) return;
+        const pct=(audio.currentTime/audio.duration)*100;
+        progEl.value=pct;
+        elapsedEl.textContent=fmt(audio.currentTime);
+      });
+      audio.addEventListener('loadedmetadata', ()=>{
+        totalEl.textContent=fmt(audio.duration);
+      });
+      audio.addEventListener('error', ()=>{
+        titleEl.textContent='⚠ Could not play this file';
+      });
+
+      // ── Visualizer bars (CSS animation trick — no AudioContext needed) ────
+      function showVis(){
+        visWrap.style.opacity='1';
+        if(visWrap.children.length) return;
+        for(let i=0;i<18;i++){
+          const b=document.createElement('div');
+          b.style.cssText=`flex:1;background:linear-gradient(to top,var(--accent),var(--accent2));border-radius:2px 2px 0 0;min-height:3px;animation:visBar ${(0.4+Math.random()*0.6).toFixed(2)}s ease-in-out infinite alternate;animation-delay:${(Math.random()*0.3).toFixed(2)}s;`;
+          visWrap.appendChild(b);
+        }
+        // inject keyframes if not present
+        if(!document.getElementById('visBarKf')){
+          const st=document.createElement('style'); st.id='visBarKf';
+          st.textContent='@keyframes visBar{from{height:5%}to{height:'+(30+Math.random()*50).toFixed(0)+'%}}';
+          document.head.appendChild(st);
+        }
+      }
+
+      // ── Next track logic ─────────────────────────────────
+      function nextTrack(){
+        if(!playlist.length) return;
+        if(shuffle) cur=Math.floor(Math.random()*playlist.length);
+        else cur=(cur+1)%playlist.length;
+        loadTrack(cur); audio.play();
+      }
+
+      // ── Load a track ─────────────────────────────────────
+      function loadTrack(i){
+        cur=i;
+        const t=playlist[i];
+        audio.src=t.url;
+        // Display name: strip extension
+        const name=t.name.replace(/\.\w+$/, '');
+        titleEl.textContent=name;
+        artistEl.textContent=t.name;
+        totalEl.textContent='...';
+        elapsedEl.textContent='0:00';
+        progEl.value=0;
+        // Pick emoji based on index
+        const emojis=['🎵','🎶','🎸','🎹','🥁','🎷','🎺','🎻','🪗','🎤'];
+        artEl.childNodes[0].textContent=emojis[i%emojis.length];
+        // Highlight in playlist
+        wbody.querySelectorAll('.pl-item').forEach((el,j)=>el.classList.toggle('active',j===i));
+      }
+
+      // ── File input ───────────────────────────────────────
+      wbody.querySelector('#muFileIn').addEventListener('change', e=>{
+        const files=[...e.target.files];
+        if(!files.length) return;
+        // Revoke old object URLs
+        playlist.forEach(t=>{ if(t.url.startsWith('blob:')) URL.revokeObjectURL(t.url); });
+        playlist=[...playlist, ...files.map(f=>({name:f.name, url:URL.createObjectURL(f)}))];
+        rebuildPlaylist();
+        // Auto-play first new track if nothing was playing
+        if(playlist.length===files.length){ loadTrack(0); audio.play(); }
+      });
+
+      // ── Rebuild playlist DOM ─────────────────────────────
+      function rebuildPlaylist(){
+        plTitle.textContent='PLAYLIST ('+playlist.length+')';
+        plItems.innerHTML='';
+        playlist.forEach((t,i)=>{
+          const el=document.createElement('div');
+          el.className='pl-item'+(i===cur?' active':'');
+          const name=t.name.replace(/\.\w+$/, '');
+          const emojis=['🎵','🎶','🎸','🎹','🥁','🎷','🎺','🎻','🪗','🎤'];
+          el.innerHTML=`<span class="pl-num">${i+1}</span>
+            <span style="font-size:16px">${emojis[i%emojis.length]}</span>
+            <div class="pl-info"><div class="pl-title">${name}</div><div class="pl-artist" style="font-size:10px;color:var(--muted);">${t.name}</div></div>
+            <button style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:2px 5px;" onclick="event.stopPropagation();muRemove(${i})">✕</button>`;
+          el.addEventListener('click', ()=>{ loadTrack(i); audio.play(); });
+          plItems.appendChild(el);
+        });
+        if(!playlist.length){
+          plItems.innerHTML='<div style="text-align:center;padding:24px 12px;color:var(--muted);font-size:11.5px;line-height:1.7;">No tracks yet.<br>Click <strong style="color:var(--text)">+ Add Files</strong> to open<br>MP3, WAV, FLAC, OGG and more.</div>';
+        }
+      }
+
+      window.muRemove=function(i){
+        if(playlist[i].url.startsWith('blob:')) URL.revokeObjectURL(playlist[i].url);
+        playlist.splice(i,1);
+        if(cur>=playlist.length) cur=Math.max(0,playlist.length-1);
+        if(playlist.length){ loadTrack(cur); } else { audio.pause(); audio.src=''; titleEl.textContent='No track loaded'; artistEl.textContent='Open audio files to begin'; }
+        rebuildPlaylist();
+      };
+
+      // Cleanup on close
+      const winEl=wbody.closest ? wbody.closest('.window') : null;
+      if(winEl) winEl.querySelector('.winbtn.close')?.addEventListener('click',()=>{
+        audio.pause(); playlist.forEach(t=>{ if(t.url.startsWith('blob:')) URL.revokeObjectURL(t.url); });
+      });
+    }
+  });
+}
+
+/* ========================= APP: VIDEO PLAYER ========================= */
+function launchVideo(){
+  const pid = Kernel.spawn('nebula-video', {cpu:4.0, mem:120});
+  WM.createWindow({title:'Video Player', icon:'🎬', width:720, height:520, pid,
+    body:(wbody)=>{
+      let playlist=[], cur=0;
+
+      wbody.innerHTML=`
+<div class="video-player" style="position:relative;">
+  <!-- VIDEO ELEMENT -->
+  <video id="nebVid" style="flex:1;width:100%;min-height:0;object-fit:contain;background:#000;display:none;" playsinline></video>
+
+  <!-- PLACEHOLDER (shown when no file loaded) -->
+  <div id="vidPlaceholder" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:linear-gradient(160deg,#0a0c1a,#101828);cursor:pointer;" onclick="document.getElementById('vidFileIn').click()">
+    <div style="font-size:64px;opacity:.35;">🎬</div>
+    <div style="font-size:14px;font-weight:700;color:var(--text);">Open a video file to play</div>
+    <div style="font-size:12px;color:var(--muted);">Click anywhere or use + Add Video below</div>
+    <div style="font-size:11px;color:var(--muted);opacity:.7;">Supports MP4, WebM, MKV, MOV, AVI and more</div>
+  </div>
+
+  <!-- CONTROLS BAR -->
+  <div class="video-bar">
+    <!-- Progress -->
+    <div class="video-prog-wrap">
+      <span id="vElapsed" style="font-family:'Space Grotesk',monospace;font-size:11px;">0:00</span>
+      <input class="video-progress" type="range" min="0" max="100" value="0" id="vProg" style="cursor:pointer;">
+      <span id="vDuration" style="font-family:'Space Grotesk',monospace;font-size:11px;">0:00</span>
+    </div>
+    <!-- Controls row -->
+    <div class="video-controls-row" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+      <button class="vc-btn" id="vcPrevBtn" title="Previous">⏮</button>
+      <button class="vc-btn primary" id="vcPlayBtn" title="Play/Pause">▶</button>
+      <button class="vc-btn" id="vcNextBtn" title="Next">⏭</button>
+      <button class="vc-btn" id="vcMuteBtn" title="Mute">🔊</button>
+      <input type="range" min="0" max="100" value="80" id="vcVol" style="width:64px;height:3px;appearance:none;-webkit-appearance:none;background:var(--glass);border-radius:2px;cursor:pointer;outline:none;">
+      <div class="video-title" id="vcTitleBar" style="flex:1;font-size:12px;font-weight:600;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);">No file loaded</div>
+      <button class="vc-btn" id="vcFullBtn" title="Fullscreen" style="font-size:13px;">⛶</button>
+      <button class="vc-btn" id="vcPipBtn" title="Picture-in-Picture" style="font-size:11px;">PiP</button>
+      <label style="cursor:pointer;background:linear-gradient(135deg,var(--accent),#5a3df0);color:#fff;padding:5px 11px;border-radius:7px;font-size:11.5px;font-weight:700;white-space:nowrap;flex-shrink:0;">
+        + Add Video <input type="file" id="vidFileIn" accept="video/*" multiple style="display:none">
+      </label>
+    </div>
+  </div>
+
+  <!-- PLAYLIST -->
+  <div class="video-playlist" id="vpList" style="display:none;"></div>
+</div>`;
+
+      // ── DOM refs ──────────────────────────────────────────
+      const vid      = wbody.querySelector('#nebVid');
+      const ph       = wbody.querySelector('#vidPlaceholder');
+      const progEl   = wbody.querySelector('#vProg');
+      const elapsedEl= wbody.querySelector('#vElapsed');
+      const durEl    = wbody.querySelector('#vDuration');
+      const playBtn  = wbody.querySelector('#vcPlayBtn');
+      const titleBar = wbody.querySelector('#vcTitleBar');
+      const vpList   = wbody.querySelector('#vpList');
+      const volEl    = wbody.querySelector('#vcVol');
+      const muteBtn  = wbody.querySelector('#vcMuteBtn');
+
+      function fmt(s){ if(!isFinite(s)) return '0:00'; const m=Math.floor(s/60); return m+':'+(Math.floor(s%60)).toString().padStart(2,'0'); }
+
+      // ── Playback controls ──────────────────────────────────
+      playBtn.addEventListener('click', ()=>{ if(vid.paused) vid.play(); else vid.pause(); });
+      wbody.querySelector('#vcPrevBtn').addEventListener('click', ()=>{
+        if(cur>0){ cur--; loadTrack(cur); vid.play(); }
+      });
+      wbody.querySelector('#vcNextBtn').addEventListener('click', ()=>{
+        if(cur<playlist.length-1){ cur++; loadTrack(cur); vid.play(); }
+      });
+
+      // ── Volume & Mute ──────────────────────────────────────
+      volEl.addEventListener('input', ()=>{ vid.volume=volEl.value/100; vid.muted=false; muteBtn.textContent='🔊'; });
+      muteBtn.addEventListener('click', ()=>{
+        vid.muted=!vid.muted;
+        muteBtn.textContent=vid.muted?'🔇':'🔊';
+      });
+
+      // ── Fullscreen ────────────────────────────────────────
+      wbody.querySelector('#vcFullBtn').addEventListener('click', ()=>{
+        if(vid.requestFullscreen) vid.requestFullscreen();
+      });
+
+      // ── Picture-in-Picture ────────────────────────────────
+      wbody.querySelector('#vcPipBtn').addEventListener('click', async ()=>{
+        try{
+          if(document.pictureInPictureElement) await document.exitPictureInPicture();
+          else if(vid.readyState>=2) await vid.requestPictureInPicture();
+        }catch(e){}
+      });
+
+      // ── Scrub ─────────────────────────────────────────────
+      progEl.addEventListener('input', ()=>{
+        if(vid.duration) vid.currentTime=(progEl.value/100)*vid.duration;
+      });
+
+      // ── Video events ──────────────────────────────────────
+      vid.addEventListener('play',  ()=>{ playBtn.textContent='⏸'; });
+      vid.addEventListener('pause', ()=>{ playBtn.textContent='▶'; });
+      vid.addEventListener('ended', ()=>{
+        if(cur<playlist.length-1){ cur++; loadTrack(cur); vid.play(); }
+        else playBtn.textContent='▶';
+      });
+      vid.addEventListener('timeupdate', ()=>{
+        if(!vid.duration) return;
+        progEl.value=(vid.currentTime/vid.duration)*100;
+        elapsedEl.textContent=fmt(vid.currentTime);
+      });
+      vid.addEventListener('loadedmetadata', ()=>{
+        durEl.textContent=fmt(vid.duration);
+      });
+      vid.addEventListener('error', ()=>{
+        titleBar.textContent='⚠ Cannot play this file (codec may be unsupported)';
+      });
+
+      // ── Double-click to fullscreen ──────────────────────
+      vid.addEventListener('dblclick', ()=>{ if(vid.requestFullscreen) vid.requestFullscreen(); });
+
+      // ── Load a track ──────────────────────────────────────
+      function loadTrack(i){
+        cur=i;
+        const t=playlist[i];
+        vid.src=t.url;
+        const name=t.name.replace(/\.\w+$/,'');
+        titleBar.textContent=name;
+        elapsedEl.textContent='0:00'; durEl.textContent='0:00'; progEl.value=0;
+        wbody.querySelectorAll('.vp-item').forEach((el,j)=>el.classList.toggle('active',j===i));
+      }
+
+      // ── File input ────────────────────────────────────────
+      wbody.querySelector('#vidFileIn').addEventListener('change', e=>{
+        const files=[...e.target.files];
+        if(!files.length) return;
+        const startIdx=playlist.length;
+        files.forEach(f=> playlist.push({name:f.name, url:URL.createObjectURL(f)}));
+        rebuildPlaylist();
+        // Show video, hide placeholder
+        ph.style.display='none';
+        vid.style.display='block';
+        // Auto-play first added file
+        loadTrack(startIdx);
+        vid.play();
+      });
+
+      // ── Rebuild playlist DOM ──────────────────────────────
+      function rebuildPlaylist(){
+        if(playlist.length>1){
+          vpList.style.display='flex';
+          vpList.innerHTML='';
+          const exts=['🎬','🎥','📽️','🎦','🎞️'];
+          playlist.forEach((t,i)=>{
+            const el=document.createElement('div');
+            el.className='vp-item'+(i===cur?' active':'');
+            const name=t.name.replace(/\.\w+$/,'');
+            el.innerHTML=`<div class="vp-thumb">${exts[i%exts.length]}</div>
+              <div class="vp-info"><div class="vp-title">${name}</div><div class="vp-meta" style="font-size:10px;color:var(--muted);">${t.name}</div></div>
+              <button style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;flex-shrink:0;" onclick="event.stopPropagation();vpRemove(${i})">✕</button>`;
+            el.addEventListener('click',()=>{ loadTrack(i); vid.play(); });
+            vpList.appendChild(el);
+          });
+        } else {
+          vpList.style.display='none';
+        }
+      }
+
+      window.vpRemove=function(i){
+        if(playlist[i].url.startsWith('blob:')) URL.revokeObjectURL(playlist[i].url);
+        playlist.splice(i,1);
+        if(cur>=playlist.length) cur=Math.max(0,playlist.length-1);
+        if(playlist.length){ loadTrack(cur); }
+        else { vid.pause(); vid.src=''; vid.style.display='none'; ph.style.display='flex'; titleBar.textContent='No file loaded'; }
+        rebuildPlaylist();
+      };
+
+      // Cleanup
+      const winEl=wbody.closest ? wbody.closest('.window') : null;
+      if(winEl) winEl.querySelector('.winbtn.close')?.addEventListener('click',()=>{
+        vid.pause(); playlist.forEach(t=>{ if(t.url.startsWith('blob:')) URL.revokeObjectURL(t.url); });
+      });
+    }
+  });
+}
+
+
+
 const APPS = [
-  {id:'terminal', name:'Terminal', icon:'⌨', fn:launchTerminal},
-  {id:'browser', name:'Browser', icon:'🌐', fn:()=>launchBrowser()},
-  {id:'files', name:'Files', icon:'📁', fn:launchFiles},
-  {id:'monitor', name:'Monitor', icon:'📊', fn:launchMonitor},
-  {id:'about', name:'About', icon:'ℹ️', fn:launchAbout},
+  {id:'terminal',  name:'Terminal',  icon:'⌨️',  fn:launchTerminal},
+  {id:'browser',   name:'Browser',   icon:'🌐',  fn:()=>launchBrowser()},
+  {id:'files',     name:'Files',     icon:'📁',  fn:launchFiles},
+  {id:'geometry',  name:'Geometry',  icon:'📐',  fn:launchGeometry},
+  {id:'music',     name:'Music',     icon:'🎵',  fn:launchMusic},
+  {id:'video',     name:'Video',     icon:'🎬',  fn:launchVideo},
+  {id:'monitor',   name:'Monitor',   icon:'📊',  fn:launchMonitor},
+  {id:'security',  name:'Security',  icon:'🛡️',  fn:launchSecurity},
+  {id:'about',     name:'About',     icon:'ℹ️',  fn:launchAbout},
 ];
 
 function buildDesktopIcons(){
-  const c = document.getElementById('iconsContainer');
-  APPS.forEach(app=>{
-    const el = document.createElement('div');
-    el.className='icon';
-    el.innerHTML = `<span class="glyph">${app.icon}</span><span class="label">${app.name}</span>`;
-    el.addEventListener('click', (e)=>{ e.stopPropagation(); app.fn(); });
-    c.appendChild(el);
-  });
+  // Also populate the taskbar app buttons
+  const tbBtns = document.getElementById('tbAppBtns');
+  if(tbBtns){
+    tbBtns.style.display='flex';
+    tbBtns.style.gap='3px';
+    APPS.forEach(app=>{
+      const btn = document.createElement('button');
+      btn.className='tb-app-btn';
+      btn.id='tbapp-'+app.id;
+      btn.innerHTML = `<span>${app.icon}</span><span class="tb-label">${app.name}</span>`;
+      btn.title = app.name;
+      btn.addEventListener('click', ()=>app.fn());
+      tbBtns.appendChild(btn);
+    });
+  }
 }
 function buildStartMenu(){
   const c = document.getElementById('startApps');
@@ -898,6 +2316,149 @@ function buildStartMenu(){
   });
 }
 
+/* ---------------------------- DOCK (macOS-style) ---------------------------- */
+function buildDock(){
+  const dock = document.getElementById('dock');
+  const icons = APPS.map(app=>{
+    const el = document.createElement('div');
+    el.className='dock-icon';
+    el.innerHTML = `${app.icon}<span class="dot"></span><span class="dock-tip">${app.name}</span>`;
+    el.addEventListener('click', ()=>{
+      app.fn();
+      el.classList.add('running');
+      el.style.transform += ' translateY(-2px)';
+      setTimeout(()=>{ el.style.transform = el.style.transform.replace(' translateY(-2px)',''); }, 140);
+    });
+    dock.appendChild(el);
+    return el;
+  });
+
+  // macOS-style proximity magnification
+  dock.addEventListener('mousemove', (e)=>{
+    const rect = dock.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    icons.forEach(icon=>{
+      const ir = icon.getBoundingClientRect();
+      const iconCenter = (ir.left - rect.left) + ir.width/2;
+      const dist = Math.abs(mouseX - iconCenter);
+      const maxDist = 110, maxScale = 1.55, minScale = 1;
+      const scale = dist > maxDist ? minScale : minScale + (maxScale-minScale) * (1 - dist/maxDist);
+      icon.style.transform = `scale(${scale.toFixed(2)})`;
+      icon.style.zIndex = Math.round(scale*10);
+    });
+  });
+  dock.addEventListener('mouseleave', ()=>{
+    icons.forEach(icon=> icon.style.transform = 'scale(1)');
+  });
+
+  // reflect running state in both dock and taskbar buttons
+  setInterval(()=>{
+    const openTitles = Array.from(document.querySelectorAll('.taskApp span:nth-child(2)')).map(s=>s.textContent.toLowerCase());
+    icons.forEach((icon,i)=>{
+      const name = APPS[i].name.toLowerCase();
+      const isOpen = openTitles.some(t=> t.includes(name) || name.includes(t));
+      icon.classList.toggle('running', isOpen);
+      const tbBtn = document.getElementById('tbapp-'+APPS[i].id);
+      if(tbBtn) tbBtn.classList.toggle('running', isOpen);
+    });
+  }, 800);
+}
+
+/* ---------------------------- SYSTEM MONITOR (CPU/GPU widgets) ---------------------------- */
+const SystemMonitor = (() => {
+  const HISTORY_LEN = 60;
+  let cpuHist = new Array(HISTORY_LEN).fill(0);
+  let gpuHist = new Array(HISTORY_LEN).fill(0);
+  let gpuPhase = Math.random()*10;
+  let cpuPeak = 0, gpuPeak = 0;
+
+  function sampleCpu(){
+    const procs = Kernel.list();
+    const total = procs.reduce((a,p)=>a+p.cpu,0);
+    return Math.max(0, Math.min(100, total));
+  }
+  function sampleGpu(){
+    gpuPhase += 0.18 + Math.random()*0.05;
+    const hasBrowser = Kernel.list().some(p=>p.name.includes('browser'));
+    const base = 8 + Math.sin(gpuPhase)*6 + Math.random()*5;
+    return Math.max(2, Math.min(100, base + (hasBrowser? 18:0)));
+  }
+
+  function drawSpark(canvas, hist, color, fill){
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0,0,w,h);
+    const max = 100;
+    const step = w / (hist.length-1);
+    ctx.beginPath();
+    hist.forEach((v,i)=>{
+      const x = i*step, y = h - (v/max)*h;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.strokeStyle = color; ctx.lineWidth = 1.6; ctx.lineJoin='round'; ctx.stroke();
+    if(fill){
+      ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.closePath();
+      const grad = ctx.createLinearGradient(0,0,0,h);
+      grad.addColorStop(0, color+'55'); grad.addColorStop(1, color+'00');
+      ctx.fillStyle = grad; ctx.fill();
+    }
+  }
+
+  function pad2(hex){ return hex; }
+
+  function tick(){
+    const cpu = sampleCpu(), gpu = sampleGpu();
+    cpuHist.push(cpu); cpuHist.shift();
+    gpuHist.push(gpu); gpuHist.shift();
+    cpuPeak = Math.max(cpuPeak*0.995, cpu);
+    gpuPeak = Math.max(gpuPeak*0.995, gpu);
+
+    // menu bar mini meters
+    const mbCpuCanvas = document.querySelector('#mb-cpu canvas');
+    const mbGpuCanvas = document.querySelector('#mb-gpu canvas');
+    if(mbCpuCanvas) drawSpark(mbCpuCanvas, cpuHist.slice(-20), '#7c5cff', false);
+    if(mbGpuCanvas) drawSpark(mbGpuCanvas, gpuHist.slice(-20), '#00d9c0', false);
+    const mbCpuVal = document.querySelector('#mb-cpu .mb-val'); if(mbCpuVal) mbCpuVal.textContent = Math.round(cpu)+'%';
+    const mbGpuVal = document.querySelector('#mb-gpu .mb-val'); if(mbGpuVal) mbGpuVal.textContent = Math.round(gpu)+'%';
+
+    // widget panel big graphs
+    const wCpuCanvas = document.getElementById('w-cpu-canvas');
+    const wGpuCanvas = document.getElementById('w-gpu-canvas');
+    if(wCpuCanvas){
+      wCpuCanvas.width = wCpuCanvas.clientWidth; wCpuCanvas.height = 120;
+      drawSpark(wCpuCanvas, cpuHist, '#7c5cff', true);
+    }
+    if(wGpuCanvas){
+      wGpuCanvas.width = wGpuCanvas.clientWidth; wGpuCanvas.height = 120;
+      drawSpark(wGpuCanvas, gpuHist, '#00d9c0', true);
+    }
+    const wCpuVal = document.getElementById('w-cpu-val'); if(wCpuVal) wCpuVal.textContent = Math.round(cpu)+'%';
+    const wGpuVal = document.getElementById('w-gpu-val'); if(wGpuVal) wGpuVal.textContent = Math.round(gpu)+'%';
+    const wCpuProcs = document.getElementById('w-cpu-procs'); if(wCpuProcs) wCpuProcs.textContent = Kernel.list().length+' processes';
+    const wCpuPeak = document.getElementById('w-cpu-peak'); if(wCpuPeak) wCpuPeak.textContent = 'peak '+Math.round(cpuPeak)+'%';
+    const wGpuPeak = document.getElementById('w-gpu-peak'); if(wGpuPeak) wGpuPeak.textContent = 'peak '+Math.round(gpuPeak)+'%';
+  }
+
+  function start(){ tick(); setInterval(tick, 1000); }
+  function currentCpu(){ return cpuHist[cpuHist.length-1]; }
+  function currentGpu(){ return gpuHist[gpuHist.length-1]; }
+
+  return { start, currentCpu, currentGpu };
+})();
+
+function wireWidgetPanel(){
+  const panel = document.getElementById('widgetPanel');
+  function toggle(e){ e.stopPropagation(); panel.style.display = panel.style.display==='block' ? 'none' : 'block'; }
+  document.getElementById('mb-cpu').addEventListener('click', toggle);
+  document.getElementById('mb-gpu').addEventListener('click', toggle);
+  document.addEventListener('click', (e)=>{
+    if(panel.style.display==='block' && !panel.contains(e.target) && e.target.id!=='mb-cpu' && e.target.id!=='mb-gpu'){
+      panel.style.display='none';
+    }
+  });
+  panel.addEventListener('click', e=>e.stopPropagation());
+}
+
 document.getElementById('startBtn').addEventListener('click', (e)=>{
   e.stopPropagation();
   const m = document.getElementById('startMenu');
@@ -905,12 +2466,17 @@ document.getElementById('startBtn').addEventListener('click', (e)=>{
 });
 document.addEventListener('click', ()=>{ document.getElementById('startMenu').style.display='none'; });
 document.getElementById('startMenu').addEventListener('click', e=>e.stopPropagation());
+document.getElementById('lockItem').addEventListener('click', ()=>{
+  document.getElementById('startMenu').style.display='none';
+  Auth.lock();
+});
 
 function tickClock(){
   const d = new Date();
   const s = d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'}) + ' · ' + d.toLocaleDateString();
   document.getElementById('clock').textContent = s;
   const sc = document.getElementById('startClock'); if(sc) sc.textContent = d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  const mb = document.getElementById('mb-clock'); if(mb) mb.textContent = d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'}) + '  ' + d.toLocaleDateString([],{month:'short',day:'numeric'});
 }
 setInterval(tickClock, 1000); tickClock();
 
@@ -942,9 +2508,124 @@ function boot(){
   }, 220);
 }
 
+/* ---------------------------- AUTH / LOGIN ---------------------------- */
+const Auth = (() => {
+  const STORE_KEY = 'nebulaos_auth_v1';
+
+  async function sha256(text){
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  }
+
+  function getRecord(){
+    try{ const raw = localStorage.getItem(STORE_KEY); return raw ? JSON.parse(raw) : null; }
+    catch(e){ return null; }
+  }
+  function setRecord(rec){
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify(rec)); }catch(e){}
+  }
+  function clearRecord(){
+    try{ localStorage.removeItem(STORE_KEY); }catch(e){}
+  }
+
+  const card = document.getElementById('authCard');
+  const screen = document.getElementById('authScreen');
+
+  function showScreen(){ screen.style.display='flex'; }
+  function hideScreen(){ screen.style.display='none'; }
+
+  function renderSetup(onDone){
+    card.innerHTML = `
+      <div class="avatar">🧑‍🚀</div>
+      <h2>Welcome to NebulaOS</h2>
+      <div class="sub">Create a password to protect your session</div>
+      <input id="setup-user" type="text" placeholder="Username" value="user" autocomplete="off"/>
+      <input id="setup-pw" type="password" placeholder="New password" autocomplete="new-password"/>
+      <div class="strengthBar"><div id="setup-strength"></div></div>
+      <input id="setup-pw2" type="password" placeholder="Confirm password" autocomplete="new-password"/>
+      <button class="primary" id="setup-go">Create account & continue</button>
+      <div class="authErr" id="setup-err"></div>
+      <div class="authHint">Stored only in this browser (hashed, never in plaintext). Resetting clears it.</div>
+    `;
+    const pwInput = card.querySelector('#setup-pw');
+    const strength = card.querySelector('#setup-strength');
+    const colors = ['#ff605c','#ff9a44','#ffd24a','#8effa1','#00d9c0'];
+    pwInput.addEventListener('input', ()=>{
+      if(!pwInput.value){ strength.style.width='0%'; return; }
+      const r = analyzePassword(pwInput.value);
+      strength.style.width = ((r.score+1)/5*100)+'%';
+      strength.style.background = colors[r.score];
+    });
+    const err = card.querySelector('#setup-err');
+    async function go(){
+      const user = card.querySelector('#setup-user').value.trim() || 'user';
+      const pw = card.querySelector('#setup-pw').value;
+      const pw2 = card.querySelector('#setup-pw2').value;
+      if(pw.length < 4){ err.textContent = 'Password must be at least 4 characters.'; return; }
+      if(pw !== pw2){ err.textContent = 'Passwords do not match.'; return; }
+      const hash = await sha256(pw);
+      setRecord({user, hash});
+      onDone(user);
+    }
+    card.querySelector('#setup-go').onclick = go;
+    card.querySelectorAll('#setup-pw2').forEach(i=> i.addEventListener('keydown', e=>{ if(e.key==='Enter') go(); }));
+  }
+
+  function renderLogin(rec, onDone){
+    card.innerHTML = `
+      <div class="avatar">🧑‍🚀</div>
+      <h2>${rec.user}</h2>
+      <div class="sub">Enter your password to unlock NebulaOS</div>
+      <input id="login-pw" type="password" placeholder="Password" autocomplete="current-password"/>
+      <button class="primary" id="login-go">Unlock</button>
+      <div class="authErr" id="login-err"></div>
+      <div class="authHint">Forgot it? <span class="authLink" id="login-reset">Reset NebulaOS</span> (erases saved password &amp; virtual files)</div>
+    `;
+    const err = card.querySelector('#login-err');
+    const pwInput = card.querySelector('#login-pw');
+    async function go(){
+      const hash = await sha256(pwInput.value);
+      if(hash === rec.hash){ onDone(rec.user); }
+      else { err.textContent = 'Incorrect password.'; pwInput.value=''; pwInput.focus(); }
+    }
+    card.querySelector('#login-go').onclick = go;
+    pwInput.addEventListener('keydown', e=>{ if(e.key==='Enter') go(); });
+    card.querySelector('#login-reset').onclick = ()=>{
+      if(confirm('Reset NebulaOS? This clears your saved password and reloads the page.')){
+        clearRecord(); location.reload();
+      }
+    };
+    setTimeout(()=>pwInput.focus(), 50);
+  }
+
+  function start(onAuthenticated){
+    showScreen();
+    const rec = getRecord();
+    if(rec){
+      renderLogin(rec, (user)=>{ hideScreen(); onAuthenticated(user); });
+    } else {
+      renderSetup((user)=>{ hideScreen(); onAuthenticated(user); });
+    }
+  }
+
+  function lock(){
+    const rec = getRecord();
+    if(!rec) return;
+    showScreen();
+    renderLogin(rec, ()=>{ hideScreen(); });
+  }
+
+  return { start, lock, clearRecord };
+})();
+
 buildDesktopIcons();
 buildStartMenu();
-boot();
+buildDock();
+wireWidgetPanel();
+SystemMonitor.start();
+// Always start fresh — clear any stored session so setup screen shows
+try { localStorage.removeItem('nebulaos_auth_v1'); } catch(e) {}
+Auth.start(()=>{ document.getElementById('bootScreen').style.display='flex'; boot(); });
 </script>
 </body>
 </html>
